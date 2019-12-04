@@ -74,11 +74,11 @@ A kérés paraméterek:
 
 ## Felhasználói felület
 
-Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet* szekcióban az *EmptyActivity* sablont.
+Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet* szekcióban az *Empty Activity* sablont.
 
 Az alkalmazás neve legyen `CameraLabor`, a package név legyen `hu.bme.aut.android.cameralabor`, és természetesen válasszuk a Kotlin nyelvet.
 
-A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk és az AndroidX függőségekre nincs szükségünk a labor során.
+A minimum SDK szint az *API 19: Android 4.4*, az androidx függőségeket szeretnénk használni és az instant alkalmazásokat nem támogatjuk a labor során.
 
 A `test` és az `androidTest` mappákra nem lesz szükségünk, azokat törölhetjük!
 
@@ -95,10 +95,10 @@ Vegyük fel a Manifest állományba a szükséges engedélyeket:
 A modul szintű `build.gradle`-ben vegyük fel a `RecyclerView` függőséget:
 
 ```groovy
-implementation 'com.android.support:recyclerview-v7:28.0.0'
+implementation "androidx.recyclerview:recyclerview:1.0.0"
 ```
  
-A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez egy egyszerű `RecyclerView`, mely egy `SwipeRefreshLayout`-ba van ágyazva, ami lehetőséget biztosít arra, hogy a listához egyszerűen implementáljunk *pull-to-refresh* működést. A hozzá tartozó `activity_main.xml` tartalma a következő:
+A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez a nézet egy egyszerű `RecyclerView`, mely egy `SwipeRefreshLayout`-ba van ágyazva. A `SwipeRefreshLayout` lehetőséget biztosít arra, hogy a listához egyszerűen implementáljunk *pull-to-refresh* működést. Az ehhez tartozó `activity_main.xml` tartalma a következő:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -111,23 +111,23 @@ A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez egy egysze
     android:layout_marginStart="@dimen/activity_horizontal_margin"
     android:layout_marginTop="@dimen/activity_vertical_margin">
 
-    <android.support.v4.widget.SwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlImages"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvImages"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="vertical" />
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </FrameLayout>
 ```
 
-A hiányzó dimenzió értékeket vegyük fel *Alt+Enter* segítségével. Értékük legyen `16dp`.
+A hiányzó dimenzió értékeket vegyük fel <kbd>Alt</kbd>+<kbd>Enter</kbd> segítségével. Értékük legyen `16dp`.
 
 A `MainActivity` kódja pedig a következő. Látható, hogy a `loadImages()` függvény végzi ez a fotók letöltését (egyelőre csak beégetett értékekkel), ez hívódik a nézetre navigálása után, illetve akkor is, ha lehúzzással frissítjük a tartalmat.
 
@@ -237,7 +237,7 @@ A [Glide](https://github.com/bumptech/glide) egy általános célú képkezelő 
 Használatához a modul szintű `build.gradle`-ben vegyük fel a következő függőséget a `dependencies` blokkban. 
 
 ```groovy
-implementation 'com.github.bumptech.glide:glide:4.8.0'
+implementation 'com.github.bumptech.glide:glide:4.9.0'
 ```
 
 Ezután az `ImagesAdapter` `onBindViewHolder` függvényében töltsük be az adott fotót az `ImageView`-ba:
@@ -258,13 +258,13 @@ Próbáljuk ki az alkalmazást!
 
 A [Retrofit](https://square.github.io/retrofit/) egy általános célú HTTP könyvtár Java környezetben. Széles körben használják, számos projektben bizonyított már (kvázi ipari standard). Azért használjuk, hogy ne kelljen alacsony színtű hálózati hívásokat implementálni (mint az előző laboron az OkHttp-vel).
 
-Segítségével elég egy interface-ben annotációk segítségével leírni az API-t (ez pl. a [Swagger](https://swagger.io/) eszközzel generálható is), majd e mögé készít a Retrofit egy olyan osztályt, mely a szükséges hálózati hívásokat elvégzi. A Retrofit a háttérben az OkHttp3-at használja, valamint az objektumok JSON formátumba történő sorosítását a Gson eszközzel végzi. Ezért ezeket is be kell hivatkozni.
+Segítségével elég egy interface-ben annotációk segítségével leírni az API-t (ez pl. a [Swagger](https://swagger.io/) eszközzel generálható is), majd e mögé készít a Retrofit egy olyan osztályt, mely a szükséges hálózati hívásokat elvégzi. A Retrofit a háttérben az [OkHttp3](https://github.com/square/okhttp)-at használja, valamint az objektumok JSON formátumba történő sorosítását a [Gson](https://github.com/google/gson) libraryvel végzi. Ezért ezeket is be kell hivatkozni.
 
 A Retrofit használatához vegyük fel a függőségek közé az alábbi kódot:
 
 ```groovy
 implementation 'com.squareup.retrofit2:retrofit:2.5.0'
-implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+implementation 'com.squareup.okhttp3:okhttp:4.1.1'
 implementation 'com.google.code.gson:gson:2.8.5'
 implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 ```
@@ -285,7 +285,7 @@ data class Image(
 )
 ```
 
-A Gson automatikus megoldja majd az egyes tagváltozók szerializálását, kivéve az `id` property esetében, mivel azt a szerver `_id`-ként adja vissza. Ezt a `@SerializedName` annotációval adhatjuk meg.
+A Gson automatikusan megoldja majd az egyes tagváltozók szerializálását, kivéve az `id` property esetében, mivel azt a szerver `_id`-ként adja vissza. Ezt a `@SerializedName` annotációval jelezhetjük.
 
 Ezután hozzunk létre egy új csomagot `network` néven, benne egy új interface-t `GalleryAPI` néven. Ez lesz az API leírónk. Az elérhető `Call` osztályok közül válasszuk a Retrofit által nyújtottat, az `Image` osztályok közül pedig mindig a sajátunkat importáljuk. 
 
@@ -332,7 +332,7 @@ class GalleryInteractor {
 }
 ```
 
-Látható, hogy a `Retrofit` objektumot felhasználva hozzuk létre a `GalleryAPI` osztály implementációját, melyet azután használhatunk is. Itt állítjuk be hogy a konverziókhoz a `Gson`-t használja, így felelteti meg a `Retrofit` a Kotlin modell objektumokat a JSON formátumnak (illetve szükség esetén visszafelé is).
+Látható, hogy a `Retrofit` objektumot felhasználva hozzuk létre a `GalleryAPI` osztály implementációját, melyet azután használhatunk is. Itt állítjuk be hogy az átalakításokhoz a `Gson`-t használja, így felelteti meg a `Retrofit` a Kotlin modell objektumokat a JSON formátumnak (illetve szükség esetén visszafelé is).
 
 Azért, hogy a hálózati hívásokat külön szálra ütemezzük, majd a választ egy interface-en keresztül visszaütemezzük a főszálra *generikus függvényeket* fogunk használni. Az API-ban definiált `Call` objektumok lehetővé teszik, hogy a hálózati hívások ne a definiálás (ne a függvényhívás) idejében történjenek, hanem később tetszőlegesen (`.execute()` hívással) bármikor. Ez lehetőséget ad arra, hogy az összeállított kéréseket generikusan kezeljük (nem kell minden kérésre külön implementálni a szálkezelést). 
 
@@ -364,30 +364,36 @@ Ezután a fenti segédfüggvényt felhasználva elkészíthetjük a `GalleryInte
 
 ```kotlin
 fun getImages(
-        onSuccess: (List<Image>) -> Unit,
-        onError: (Throwable) -> Unit
+    onSuccess: (List<Image>) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     val getImagesRequest = galleryApi.getImages()
     runCallOnBackgroundThread(getImagesRequest, onSuccess, onError)
 }
 
 fun uploadImage(
-        fileUri: Uri,
-        name: String,
-        description: String,
-        onSuccess: (ResponseBody) -> Unit,
-        onError: (Throwable) -> Unit
+    fileUri: Uri,
+    name: String,
+    description: String,
+    onSuccess: (ResponseBody) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     val file = File(fileUri.path)
-    val requestFile = RequestBody.create(MediaType.parse(MULTIPART_FORM_DATA), file)
+    val requestFile = file.asRequestBody(MULTIPART_FORM_DATA.toMediaTypeOrNull())
     val body = MultipartBody.Part.createFormData(PHOTO_MULTIPART_KEY_IMG, file.name, requestFile)
 
-    val nameParam = RequestBody.create(okhttp3.MultipartBody.FORM, name)
-    val descriptionParam = RequestBody.create(okhttp3.MultipartBody.FORM, description)
+    val nameParam = name.toRequestBody(MultipartBody.FORM)
+    val descriptionParam = description.toRequestBody(MultipartBody.FORM)
 
     val uploadImageRequest = galleryApi.uploadImage(body, nameParam, descriptionParam)
     runCallOnBackgroundThread(uploadImageRequest, onSuccess, onError)
 }
+```
+Ha a Studio nem tudja feloldani az `asRequestBody` és `toRequestBody` extension functionöket, akkor az alábbi importokkal lehet a jó irányba terelni:
+
+```kotlin
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 ```
 
 Ezután a `MainActivity`-ben példányosítsuk a `GalleryInteractor`-unkat, majd hajtsuk végre a `getImages` hívást, melynek eredményét jelentsük meg a `ImagesAdapter` segítségével.
@@ -412,7 +418,7 @@ private fun showError(e: Throwable) {
 
 > A `getImages` által várt függvény paramétereket lambdák létrehozása helyett [metódus referenciákkal](https://kotlinlang.org/docs/reference/lambdas.html#instantiating-a-function-type) adtuk át, amihez természetesen a `showImages` és `showError` függvényeknek a megfelelő fejléccel kell rendelkezniük.
 
-Mivel eddig `String` listát jelenítettünk meg az `ImagesAdapter`-rel, most át kell alakítani az adaptert, hogy egy `Image` listát kezeljen. Ezen kívül a képek eléréhez az `IMAGE_PREFIX_URL` után kell fűznünk a kép `url` mezőjének tartalmát.
+Mivel eddig `String` listát jelenítettünk meg az `ImagesAdapter`-rel, most át kell alakítani az adaptert, hogy egy `Image` listát kezeljen. Ezen kívül a képek eléréséhez az `IMAGE_PREFIX_URL` után kell fűznünk a kép `url` mezőjének tartalmát.
 
 ```kotlin
 class ImagesAdapter(
@@ -535,6 +541,7 @@ class UploadActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CAMERA_IMAGE) {
             if (resultCode == Activity.RESULT_OK) {
                 try {

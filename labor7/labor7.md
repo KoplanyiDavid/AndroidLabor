@@ -28,9 +28,7 @@ Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet*
 
 Az alkalmazás neve legyen `NetworkLabor`, a package név legyen `hu.bme.aut.android.networklabor`, és természetesen válasszuk a Kotlin nyelvet.
 
-A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk és az AndroidX függőségekre nincs szükségünk a labor során.
-
-A `test` és az `androidTest` mappákra nem lesz szükségünk, azokat törölhetjük!
+A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk, de az AndroidX függőségeket hagyjuk bejelölve.
 
 Első lépésként készítsük el az alkalmazás felhasználói felületét XML erőforrásból. A felületen helyezzünk el két `EditText`-et, egyet a felhasználónév, egyet pedig az üzenet bekéréséhez. Emellett legyen összesen öt gomb: négy gomb az irányításhoz, egy az üzenet elküldéséhez, valamint három `TextView` az üzenetek megjelenítéséhez. 
 
@@ -332,10 +330,10 @@ A fentiek miatt a beépített megoldások helyett egy széleskörben elterjedt, 
 Ennek használatához fel kell vennünk a következő sort az alkalmazás modul szintű `build.gradle` fájljának `dependencies` részéhez:
 
 ```kotlin
-implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+implementation 'com.squareup.okhttp3:okhttp:4.1.1'
 ```
 
-Ezután a könyvtár nagyon egyszerűen használható. A `LabyrinthAPI` osztályba vegyünk fel egy property-t egy `OkHttpClient` példány tárolására. Ezt használva készítsünk egy általános HTTP GET hívást lebonyolító függvényt.
+Ezután a könyvtár nagyon egyszerűen használható. A `LabyrinthAPI` osztályba vegyünk fel egy propertyt egy `OkHttpClient` példány tárolására. Ezt használva készítsünk egy általános HTTP GET hívást lebonyolító függvényt.
 
 ```kotlin
 private val client = OkHttpClient.Builder()
@@ -350,13 +348,13 @@ private fun httpGet(url: String): String {
 
     //The execute call blocks the thread
     val response = client.newCall(request).execute()
-    return response.body()?.string() ?: "EMPTY"
+    return response.body?.string() ?: "EMPTY"
 }
 ```
 
 Ezt fogjuk használni az összes HTTP GET híváshoz. 
 
-A HTTP karakterek megfelelő URL encodeolásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt:
+A HTTP karakterek megfelelő URL encode-olásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt:
 
 ```kotlin
 private fun encode(url: String) = URLEncoder.encode(url, UTF_8)
@@ -384,6 +382,7 @@ fun moveUser(username: String, direction: Int): String {
     }
 }
 
+
 fun writeMessage(username: String, message: String): String {
     return try {
         val writeMessageUrl = "$BASE_URL/message/${encode(username)}/${encode(message)}"
@@ -408,7 +407,7 @@ companion object {
 }
 ```
 
-Majd privát property-ként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
+Majd privát propertyként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -542,7 +541,7 @@ Ezt úgy lehet kiküszöbölni, hogy az erős, referencia alapú csatolás helye
 
 Az Android platform beépítve támogatja az események kezelését *Broadcast Receiver*-ek formájában. Viszont ezeket egy alkalmazáson belül használva az üzenet sorosítása miatt overhead jelentkezik, valamint kényelmetlen is a használatuk. 
 
-Helyettük használhatunk eseménybuszokat, melyek gyorsabbak és egyszerűbben is használhatóak a *Broadcast Receiverek*-nél (ellenben csak egy alkalmazáson/processen belül működnek, és a használóinak referenciára van szükségese az eseménybuszra).
+Helyettük használhatunk eseménybuszokat, melyek gyorsabbak és egyszerűbben is használhatóak a *Broadcast Receiverek*-nél (ellenben csak egy alkalmazáson/processen belül működnek, és a használóinak referenciára van szüksége az eseménybuszra).
 
 Számos 3rd party eseménybusz megoldás van, mi a [Greenrobot EventBus](https://github.com/greenrobot/EventBus) megoldását fogjuk használni. Ehhez vegyük fel a könyvtárat a függőségek közé:
 
@@ -619,7 +618,7 @@ fun onWriteMessageResponse(event: WriteMessageResponseEvent) {
 }
 ```
 
-Itt fontos, hogy a `@Subscribe` annotáció használva legyen, ez mondja meg hogy ez egy eseménykezelő metódus, valamint a thread mode `MAIN` legyen, mert így az események a főszálon kerülnek kézbesítésre. Fontos, hogy az elküldött objektumokat az osztály típusa szerint tudja a rendszer a megfelelő eseménykezelőknek elküldeni. Egy eseményhez több eseménykezelő metódus is lehet egyszerre beregisztrálva, ilyenkor mindegyik megkapja az elküldött eseményt.
+Itt fontos a `@Subscribe` annotation használata. A `@Subscribe` mondja meg azt, hogy ez egy eseménykezelő függvény, valamint azt, hogy a thread mode `MAIN` legyen. így az események a főszálon kerülnek kézbesítésre a függvényhez. Fontos, hogy az elküldött objektumokat az osztály típusa szerint tudja a rendszer a megfelelő eseménykezelőknek elküldeni. Egy eseményhez több eseménykezelő metódus is lehet egyszerre beregisztrálva, ilyenkor mindegyik megkapja az elküldött eseményt.
 
 Ezután regisztráljuk be az metódusainkat, pontosabban azt az osztályt amely ezeket tartalmazza, ami a `MainActivity` aktuális példánya (`this`). Azt szeretnénk, hogy akkor legyenek ezek az eseménykezelő metódusok aktívak, amikor az `Activity` előtérben van, így az `onStart`-ban iratkozunk fel, és az `onStop`-ban le.
 

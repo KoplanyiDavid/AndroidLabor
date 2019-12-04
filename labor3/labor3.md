@@ -8,7 +8,7 @@ Első lépésként indítsuk el az Android Studio-t, majd:
 2. A projekt neve legyen `Todo`, a kezdő package pedig `hu.bme.aut.android.todo`.
 3. Nyelvnek válasszuk a *Kotlin*-t.
 4. A minimum API szint legyen 19 (Android 4.4).
-5. Az *instant app* támogatást és az *AndroidX* használatát NE pipáljuk be.
+5. Az *instant app* támogatást NE pipáljuk be, az *AndroidX* használata maradjon bepipálva.
 
 <p align="center">
   <img src="./assets/addnoactivity.png" width="300">
