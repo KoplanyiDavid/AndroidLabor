@@ -124,7 +124,7 @@ Ennek az alkalmazásnak az a feladata, hogy meglátogatandó helyeket gyűjtsün
 Ezután hozzunk létre egy *Floating Action Button*-t, az `activity_places_list.xml`-ben az `include` után:
 
 ```xml
-<android.support.design.widget.FloatingActionButton
+<com.google.android.material.floatingactionbutton.FloatingActionButton
     android:id="@+id/addButton"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
