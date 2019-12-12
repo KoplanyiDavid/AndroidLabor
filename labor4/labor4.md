@@ -560,8 +560,8 @@ class ApplicationsFragment : Fragment(), ApplicationsAdapter.OnApplicationClicke
 
 Próbáljuk ki az alkalmazást!
 
-![](images/dialer.png)
-![](images/apps.png)
+![](images/view_dialer.png)
+![](images/view_apps.png)
 
 ## Önálló feladat
 
