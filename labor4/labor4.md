@@ -560,8 +560,10 @@ class ApplicationsFragment : Fragment(), ApplicationsAdapter.OnApplicationClicke
 
 Próbáljuk ki az alkalmazást!
 
-![](images/view_dialer.png)
-![](images/view_apps.png)
+<p align=center>
+<img src="./images/view_dialer.png" width="300">
+<img src="./images/view_apps.png" width="300">
+</p>
 
 ## Önálló feladat
 
