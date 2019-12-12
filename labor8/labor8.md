@@ -74,17 +74,13 @@ A kérés paraméterek:
 
 ## Felhasználói felület
 
-Hozzunk létre egy új Android Studio projektet `CameraLabor` néven. 
+Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet* szekcióban az *Empty Activity* sablont.
 
-A *Company domain* mező tartalmát töröljük ki és hagyjuk is üresen.
- 
-A *Package name* legyen `hu.bme.aut.android.cameralabor`.
+Az alkalmazás neve legyen `CameraLabor`, a package név legyen `hu.bme.aut.android.cameralabor`, és természetesen válasszuk a Kotlin nyelvet.
 
-A támogatott céleszközök a *Telefon és Tablet*, a minimum SDK szint az *API19: Android 4.4*.
+A minimum SDK szint az *API 19: Android 4.4*, az androidx függőségeket szeretnénk használni és az instant alkalmazásokat nem támogatjuk a labor során.
 
-A kezdő projekthez válasszunk egy *Empty Activity*-t, melynek neve legyen `MainActivity`. 
-
-Töröljük ki a `test` és `androidTest` mappákat, most nem lesz rájuk szükség.
+A `test` és az `androidTest` mappákra nem lesz szükségünk, azokat törölhetjük!
 
 Vegyük fel a Manifest állományba a szükséges engedélyeket: 
 
@@ -99,10 +95,10 @@ Vegyük fel a Manifest állományba a szükséges engedélyeket:
 A modul szintű `build.gradle`-ben vegyük fel a `RecyclerView` függőséget:
 
 ```groovy
-implementation 'com.android.support:recyclerview-v7:28.0.0'
+implementation "androidx.recyclerview:recyclerview:1.0.0"
 ```
  
-A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez egy egyszerű `RecyclerView`, mely egy `SwipeRefreshLayout`-ba van ágyazva, ami lehetőséget biztosít arra, hogy a listához egyszerűen implementáljunk *pull-to-refresh* működést. A hozzá tartozó `activity_main.xml` tartalma a következő:
+A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez a nézet egy egyszerű `RecyclerView`, mely egy `SwipeRefreshLayout`-ba van ágyazva. A `SwipeRefreshLayout` lehetőséget biztosít arra, hogy a listához egyszerűen implementáljunk *pull-to-refresh* működést. Az ehhez tartozó `activity_main.xml` tartalma a következő:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -115,23 +111,23 @@ A `MainActivity` nézet fogja kilistázni a feltöltött képeket. Ez egy egysze
     android:layout_marginStart="@dimen/activity_horizontal_margin"
     android:layout_marginTop="@dimen/activity_vertical_margin">
 
-    <android.support.v4.widget.SwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlImages"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvImages"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="vertical" />
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </FrameLayout>
 ```
 
-A hiányzó dimenzió értékeket vegyük fel *Alt+Enter* segítségével. Értékük legyen `16dp`.
+A hiányzó dimenzió értékeket vegyük fel <kbd>Alt</kbd>+<kbd>Enter</kbd> segítségével. Értékük legyen `16dp`.
 
 A `MainActivity` kódja pedig a következő. Látható, hogy a `loadImages()` függvény végzi ez a fotók letöltését (egyelőre csak beégetett értékekkel), ez hívódik a nézetre navigálása után, illetve akkor is, ha lehúzzással frissítjük a tartalmat.
 
@@ -227,19 +223,21 @@ Az egyes képekhez tartozó cella elem felületét pedig a `li_image.xml` layout
 
 Próbáljuk ki az alkalmazást!
 
-<img src="./images/screen1.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage0.png" width="250">
+</p>
 
 
 ## Képek megjelenítése - Glide
 
-Az alkalmazás jelenleg a képek helyén a layout fájlban beállított alapértelmezett ikont jeleníti meg. Ez azért van, mert bár a listát feltöltöttük, az `onBindViewHolder(...)` hívásban nem állítottuk be a képet. A megjelenítendő képekről csak a webes URL áll rendelkezésünkre. Ilyen esetben a fájlt le kell töltenünk a hálózaton keresztül, dekódolni a kapott bájtokat, és az így kapott `Bitmap`-et beállítani az `ImageView` forrásaként. Ezt a platform által nyújtott eszközökkel elég kényelmetlen implementálni, ezért erre egy elterjedt, nyílt forráskódú könyvtárat fogunk használni.
+Az alkalmazás jelenleg a képek helyén a layout fájlban beállított alapértelmezett ikont jeleníti meg. Ez azért van, mert bár a listát feltöltöttük, az `onBindViewHolder(...)` hívásban nem állítottuk be a képet. A megjelenítendő képekről csak a webes URL áll rendelkezésünkre. Ilyen esetben a fájlt le kell töltenünk a hálózaton keresztül, dekódolni a kapott bájtokat, és az így kapott `Bitmap`-et beállítani az `ImageView` forrásaként. Ezt a platform által nyújtott eszközökkel elég hosszadalmas implementálni, ezért erre egy elterjedt, nyílt forráskódú könyvtárat fogunk használni.
 
 A [Glide](https://github.com/bumptech/glide) egy általános célú képkezelő könyvtár, gyakorlatilag a fent említett műveleteket végzi el helyettünk egyetlen kódsor használatával, továbbá támogatja a cache-elést, az aszinkron letöltést, valamint több forrásból is képes megjeleníteni (web, háttértár, content provider, resource, stb.). 
 
 Használatához a modul szintű `build.gradle`-ben vegyük fel a következő függőséget a `dependencies` blokkban. 
 
 ```groovy
-implementation 'com.github.bumptech.glide:glide:4.7.1'
+implementation 'com.github.bumptech.glide:glide:4.9.0'
 ```
 
 Ezután az `ImagesAdapter` `onBindViewHolder` függvényében töltsük be az adott fotót az `ImageView`-ba:
@@ -251,22 +249,24 @@ Glide.with(context).load(imageUrl).into(holder.imageView)
 
 Próbáljuk ki az alkalmazást!
 
-<img src="./images/screen2.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage1.png" width="250">
+</p>
 
 
 ## Retrofit
 
 A [Retrofit](https://square.github.io/retrofit/) egy általános célú HTTP könyvtár Java környezetben. Széles körben használják, számos projektben bizonyított már (kvázi ipari standard). Azért használjuk, hogy ne kelljen alacsony színtű hálózati hívásokat implementálni (mint az előző laboron az OkHttp-vel).
 
-Segítségével elég egy interface-ben annotációk segítségével leírni az API-t (ez pl. a [Swagger](https://swagger.io/) eszközzel generálható is), majd e mögé készít a Retrofit egy olyan osztályt, mely a szükséges hálózati hívásokat elvégzi. A Retrofit a háttérben az OkHttp3-at használja, valamint az objektumok JSON formátumba történő sorosítását a Gson eszközzel végzi. Ezért ezeket is be kell hivatkozni.
+Segítségével elég egy interface-ben annotációk segítségével leírni az API-t (ez pl. a [Swagger](https://swagger.io/) eszközzel generálható is), majd e mögé készít a Retrofit egy olyan osztályt, mely a szükséges hálózati hívásokat elvégzi. A Retrofit a háttérben az [OkHttp3](https://github.com/square/okhttp)-at használja, valamint az objektumok JSON formátumba történő sorosítását a [Gson](https://github.com/google/gson) libraryvel végzi. Ezért ezeket is be kell hivatkozni.
 
 A Retrofit használatához vegyük fel a függőségek közé az alábbi kódot:
 
 ```groovy
-implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+implementation 'com.squareup.okhttp3:okhttp:4.1.1'
 implementation 'com.google.code.gson:gson:2.8.5'
-implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 ```
 
 A képek adatait tartalmazó `Image` osztályt hozzuk létre a `model` csomagban.
@@ -285,7 +285,7 @@ data class Image(
 )
 ```
 
-A Gson automatikus megoldja majd az egyes tagváltozók szerializálását, kivéve az `id` property esetében, mivel azt a szerver `_id`-ként adja vissza. Ezt a `@SerializedName` annotációval adhatjuk meg.
+A Gson automatikusan megoldja majd az egyes tagváltozók szerializálását, kivéve az `id` property esetében, mivel azt a szerver `_id`-ként adja vissza. Ezt a `@SerializedName` annotációval jelezhetjük.
 
 Ezután hozzunk létre egy új csomagot `network` néven, benne egy új interface-t `GalleryAPI` néven. Ez lesz az API leírónk. Az elérhető `Call` osztályok közül válasszuk a Retrofit által nyújtottat, az `Image` osztályok közül pedig mindig a sajátunkat importáljuk. 
 
@@ -332,8 +332,7 @@ class GalleryInteractor {
 }
 ```
 
-Látható, hogy a `Retrofit` objektumot felhasználva hozzuk létre a `GalleryAPI` osztály implementációját, melyet azután használhatunk is. Itt állítjuk be hogy a konverziókhoz a `Gson`-t használja, így felelteti meg a `Retrofit` a Kotlin modell objektumokat a JSON formátumnak (illetve szükség esetén visszafelé is).
-
+Látható, hogy a `Retrofit` objektumot felhasználva hozzuk létre a `GalleryAPI` osztály implementációját, melyet azután használhatunk is. Itt állítjuk be hogy az átalakításokhoz a `Gson`-t használja, így felelteti meg a `Retrofit` a Kotlin modell objektumokat a JSON formátumnak (illetve szükség esetén visszafelé is).
 
 Azért, hogy a hálózati hívásokat külön szálra ütemezzük, majd a választ egy interface-en keresztül visszaütemezzük a főszálra *generikus függvényeket* fogunk használni. Az API-ban definiált `Call` objektumok lehetővé teszik, hogy a hálózati hívások ne a definiálás (ne a függvényhívás) idejében történjenek, hanem később tetszőlegesen (`.execute()` hívással) bármikor. Ez lehetőséget ad arra, hogy az összeállított kéréseket generikusan kezeljük (nem kell minden kérésre külön implementálni a szálkezelést). 
 
@@ -365,30 +364,36 @@ Ezután a fenti segédfüggvényt felhasználva elkészíthetjük a `GalleryInte
 
 ```kotlin
 fun getImages(
-        onSuccess: (List<Image>) -> Unit,
-        onError: (Throwable) -> Unit
+    onSuccess: (List<Image>) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     val getImagesRequest = galleryApi.getImages()
     runCallOnBackgroundThread(getImagesRequest, onSuccess, onError)
 }
 
 fun uploadImage(
-        fileUri: Uri,
-        name: String,
-        description: String,
-        onSuccess: (ResponseBody) -> Unit,
-        onError: (Throwable) -> Unit
+    fileUri: Uri,
+    name: String,
+    description: String,
+    onSuccess: (ResponseBody) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     val file = File(fileUri.path)
-    val requestFile = RequestBody.create(MediaType.parse(MULTIPART_FORM_DATA), file)
+    val requestFile = file.asRequestBody(MULTIPART_FORM_DATA.toMediaTypeOrNull())
     val body = MultipartBody.Part.createFormData(PHOTO_MULTIPART_KEY_IMG, file.name, requestFile)
 
-    val nameParam = RequestBody.create(okhttp3.MultipartBody.FORM, name)
-    val descriptionParam = RequestBody.create(okhttp3.MultipartBody.FORM, description)
+    val nameParam = name.toRequestBody(MultipartBody.FORM)
+    val descriptionParam = description.toRequestBody(MultipartBody.FORM)
 
     val uploadImageRequest = galleryApi.uploadImage(body, nameParam, descriptionParam)
     runCallOnBackgroundThread(uploadImageRequest, onSuccess, onError)
 }
+```
+Ha a Studio nem tudja feloldani az `asRequestBody` és `toRequestBody` extension functionöket, akkor az alábbi importokkal lehet a jó irányba terelni:
+
+```kotlin
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 ```
 
 Ezután a `MainActivity`-ben példányosítsuk a `GalleryInteractor`-unkat, majd hajtsuk végre a `getImages` hívást, melynek eredményét jelentsük meg a `ImagesAdapter` segítségével.
@@ -413,7 +418,7 @@ private fun showError(e: Throwable) {
 
 > A `getImages` által várt függvény paramétereket lambdák létrehozása helyett [metódus referenciákkal](https://kotlinlang.org/docs/reference/lambdas.html#instantiating-a-function-type) adtuk át, amihez természetesen a `showImages` és `showError` függvényeknek a megfelelő fejléccel kell rendelkezniük.
 
-Mivel eddig `String` listát jelenítettünk meg az `ImagesAdapter`-rel, most át kell alakítani az adaptert, hogy egy `Image` listát kezeljen. Ezen kívül a képek eléréhez az `IMAGE_PREFIX_URL` után kell fűznünk a kép `url` mezőjének tartalmát.
+Mivel eddig `String` listát jelenítettünk meg az `ImagesAdapter`-rel, most át kell alakítani az adaptert, hogy egy `Image` listát kezeljen. Ezen kívül a képek eléréséhez az `IMAGE_PREFIX_URL` után kell fűznünk a kép `url` mezőjének tartalmát.
 
 ```kotlin
 class ImagesAdapter(
@@ -451,7 +456,9 @@ class ImagesAdapter(
 
 Próbáljuk ki az alkalmazást.
 
-<img src="./images/screen3.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage2.png" width="250">
+</p>
 
 ## Fotó feltöltés
 
@@ -463,7 +470,7 @@ Hozzunk létre egy új *Empty Activity*-t `UploadActivity` néven. A hozzá tart
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <ImageView
         android:id="@+id/ivImage"
@@ -482,24 +489,24 @@ Hozzunk létre egy új *Empty Activity*-t `UploadActivity` néven. A hozzá tart
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Description"/>
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="horizontal" >
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnCapture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Capture" />
+            android:text="Capture"/>
 
         <Button
             android:id="@+id/btnUpload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Upload" />
+            android:text="Upload"/>
 
     </LinearLayout>
 
@@ -534,6 +541,7 @@ class UploadActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CAMERA_IMAGE) {
             if (resultCode == Activity.RESULT_OK) {
                 try {
@@ -549,11 +557,10 @@ class UploadActivity : AppCompatActivity() {
             }
         }
     }
-
 }
 ```
 
-Mivel a képeket mindig ugyanarra a helyre mentjük, így a *Glide* beépített cache mechanizmusát kikapcsoljuk, különben még az előző fotót jelenítené meg számos esetben.
+Mivel a képeket mindig ugyanarra a helyre mentjük, így a *Glide* beépített cache mechanizmusát kikapcsoljuk, különben még az előző fotót jelenítené meg.
 
 Ezután a `MainActivity`-ben felveszünk egy menü elemet, amivel az `UploadActivity`-re navigálhatunk. Ehhez hozzuk létre a `res/menu/menu_main.xml`-t a következő tartalommal:
 
@@ -590,8 +597,10 @@ override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
 Próbáljuk ki az alkalmazást!
 
-<img src="./images/screen4.png" width="250" align="middle">
-<img src="./images/screen5.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage3.png" width="250" align="middle">
+<img src="./images/stage4.png" width="250" align="middle">
+</p>
 
 ### A feltöltés megvalósítása
 
@@ -643,7 +652,9 @@ Figyeljük meg, hogy nekünk csak a fájl elérési útvonalát kellett megadnun
 
 Próbáljuk ki az alkalmazást, és töltsünk fel egy fotót!
 
-<img src="./images/screen6.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage5.png" width="250">
+</p>
 
 ## Megjegyzések:
 

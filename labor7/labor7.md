@@ -18,21 +18,21 @@ A játék tényleges felülete nem az Android alkalmazás része, azt egy előre
 
 A játék szabályai egyszerűek, a játékosunkat a készülékről négy gomb segítségével (bal, jobb, fel, le) irányíthatjuk, továbbá lehetőség van még üzenetküldésre is. Az első lépésünk során kerül rá az új játékos a játéktérre egy véletlen pozícióra (színes GitHub ikon). Ha egy játékos egy pontot érő mezőre lép (színes pipa), akkor pontot szerez, és egy újabb pontot érő mező kerül a pályára véletlenszerű helyre. A játékosok nem tudnak a fal (fekete négyzet) elemen átlépni, illetve másik játékos által foglalt mezőre sem léphetnek!
 
-<img src="./images/game.png" width="600" align="middle">
+<p align="center">
+<img src="./images/game.png" width="600">
+</p>
 
 ## A felhasználói felület elkészítése
 
-Hozzunk létre egy új Android Studio projektet *NetworkLabor* néven, természetesen engedélyezve a Kotlin támogatást. A *Company domain* mező tartalmát töröljük ki és hagyjuk is üresen. 
+Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet* szekcióban az *EmptyActivity*-t.
 
-A package név legyen `hu.bme.aut.android.networklabor`. A támogatott céleszközök a telefon és tablet, a minimum SDK szint az API 19: Android 4.4. 
+Az alkalmazás neve legyen `NetworkLabor`, a package név legyen `hu.bme.aut.android.networklabor`, és természetesen válasszuk a Kotlin nyelvet.
 
-A kezdő projekthez adjunk hozzá egy *Empty Activity*-t, melynek neve legyen `MainActivity`. 
-
-A `test` és az `androidTest` mappákra nem lesz szükségünk, azokat törölhetjük!
+A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk, de az AndroidX függőségeket hagyjuk bejelölve.
 
 Első lépésként készítsük el az alkalmazás felhasználói felületét XML erőforrásból. A felületen helyezzünk el két `EditText`-et, egyet a felhasználónév, egyet pedig az üzenet bekéréséhez. Emellett legyen összesen öt gomb: négy gomb az irányításhoz, egy az üzenet elküldéséhez, valamint három `TextView` az üzenetek megjelenítéséhez. 
 
-<img src="./images/ui.png" width="250" align="middle">
+<img src="./images/stage0.png" width="250" align="middle">
 
 Az ehhez megfelelő XML állomány a következő:
 
@@ -48,13 +48,13 @@ Az ehhez megfelelő XML állomány a következő:
         style="@style/DefaultViewMarginStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_username" />
+        android:text="@string/title_username"/>
 
     <EditText
         android:id="@+id/etUsername"
         style="@style/DefaultViewMarginStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -69,7 +69,7 @@ Az ehhez megfelelő XML állomány a következő:
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            android:text="@string/up" />
+            android:text="@string/up"/>
 
         <Button
             android:id="@+id/btnDown"
@@ -78,7 +78,7 @@ Az ehhez megfelelő XML állomány a következő:
             android:layout_height="wrap_content"
             android:layout_below="@id/btnUp"
             android:layout_centerHorizontal="true"
-            android:text="@string/down" />
+            android:text="@string/down"/>
 
         <Button
             android:id="@+id/btnLeft"
@@ -87,7 +87,7 @@ Az ehhez megfelelő XML állomány a következő:
             android:layout_height="wrap_content"
             android:layout_below="@id/btnUp"
             android:layout_toStartOf="@id/btnDown"
-            android:text="@string/left" />
+            android:text="@string/left"/>
 
         <Button
             android:id="@+id/btnRight"
@@ -96,7 +96,7 @@ Az ehhez megfelelő XML állomány a következő:
             android:layout_height="wrap_content"
             android:layout_below="@id/btnUp"
             android:layout_toEndOf="@id/btnDown"
-            android:text="@string/right" />
+            android:text="@string/right"/>
 
     </RelativeLayout>
 
@@ -104,13 +104,13 @@ Az ehhez megfelelő XML állomány a következő:
         style="@style/DefaultViewMarginStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_message" />
+        android:text="@string/title_message"/>
 
     <EditText
         android:id="@+id/etMessage"
         style="@style/DefaultViewMarginStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -123,7 +123,7 @@ Az ehhez megfelelő XML állomány a következő:
             style="@style/DefaultViewMarginStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/send" />
+            android:text="@string/send"/>
 
     </LinearLayout>
 
@@ -131,7 +131,7 @@ Az ehhez megfelelő XML állomány a következő:
         android:id="@+id/tvResponse"
         style="@style/DefaultViewMarginStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>
 ``` 
@@ -150,7 +150,7 @@ A felület tartalmaz több szöveges konstanst is, ezért töltsük fel a `res/v
     <string name="down">Le</string>
     <string name="send">Küldés</string>
     <string name="empty_user">Üres felhasználónév!</string>
-    <string name="empty_user_or_message"> Üres felhasználónév vagy jelszó!</string>
+    <string name="empty_user_or_message">Üres felhasználónév vagy jelszó!</string>
 </resources>
 ``` 
 
@@ -208,7 +208,9 @@ Mivel az alkalmazásunk interneten keresztül fog kommunikálni, vegyük fel a m
 
 Próbáljuk ki az alkalmazást, nézzük meg a felületét.
 
-<img src="./images/ui.png" width="250" align="middle">
+<p align="center">
+<img src="./images/stage0.png" width="250">
+</p>
 
 ## Az API bemutatása
 
@@ -259,7 +261,7 @@ Android platformon a hálózati kommunikáció emiatt új szálon kell hogy tör
 
 *	Java [Thread](https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html) (Plain Old Java Thread, rugalmas, de testre kell szabni)
 *	Android [AsyncTask](http://developer.android.com/reference/android/os/AsyncTask.html) (szálakra épül, sok beépített feature, de nem elég rugalmas)
-*   [Kotlin couroutine](https://kotlinlang.org/docs/reference/coroutines.html)-ok (bonyolultabb az előzőeknél, szálakhoz hasonló, de alapjaiban más koncepció)
+*   [Kotlin coroutine](https://kotlinlang.org/docs/reference/coroutines.html)-ok (bonyolultabb az előzőeknél, szálakhoz hasonló, de alapjaiban más koncepció)
 *   [RxJava](https://github.com/ReactiveX/RxJava) (sokkal bonyolultabb az előzőeknél, nem is csak szálkezelést végez, szálakra épül)
 
 
@@ -328,10 +330,10 @@ A fentiek miatt a beépített megoldások helyett egy széleskörben elterjedt, 
 Ennek használatához fel kell vennünk a következő sort az alkalmazás modul szintű `build.gradle` fájljának `dependencies` részéhez:
 
 ```kotlin
-implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+implementation 'com.squareup.okhttp3:okhttp:4.1.1'
 ```
 
-Ezután a könyvtár nagyon egyszerűen használható. A `LabyrinthAPI` osztályba vegyünk fel egy property-t egy `OkHttpClient` példány tárolására. Ezt használva készítsünk egy általános HTTP GET hívást lebonyolító függvényt.
+Ezután a könyvtár nagyon egyszerűen használható. A `LabyrinthAPI` osztályba vegyünk fel egy propertyt egy `OkHttpClient` példány tárolására. Ezt használva készítsünk egy általános HTTP GET hívást lebonyolító függvényt.
 
 ```kotlin
 private val client = OkHttpClient.Builder()
@@ -346,13 +348,13 @@ private fun httpGet(url: String): String {
 
     //The execute call blocks the thread
     val response = client.newCall(request).execute()
-    return response.body()?.string() ?: "EMPTY"
+    return response.body?.string() ?: "EMPTY"
 }
 ```
 
 Ezt fogjuk használni az összes HTTP GET híváshoz. 
 
-A HTTP karakterek megfelelő URL encodeolásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt:
+A HTTP karakterek megfelelő URL encode-olásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt:
 
 ```kotlin
 private fun encode(url: String) = URLEncoder.encode(url, UTF_8)
@@ -380,6 +382,7 @@ fun moveUser(username: String, direction: Int): String {
     }
 }
 
+
 fun writeMessage(username: String, message: String): String {
     return try {
         val writeMessageUrl = "$BASE_URL/message/${encode(username)}/${encode(message)}"
@@ -404,7 +407,7 @@ companion object {
 }
 ```
 
-Majd privát property-ként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
+Majd privát propertyként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -511,17 +514,34 @@ btnSend.setOnClickListener {
 
 Nézzük meg mit tapasztalunk, ha újra kipróbáljuk az alkalmazást.
 
+<p align="center">
+<img src="./images/stage1.png" width="250">
+</p>
+
 ## Megfelelő válasz kezelés
 
-Próbáljuk ki mi történik, ha megnyomunk egy gombot, majd elfordítjuk a készüléket/emulátort. Azt tapasztaljuk, hogy az alkalmazás hibába ütközik. 
+Próbáljuk ki mi történik, ha megnyomunk egy gombot, majd elfordítjuk a készüléket/emulátort. Azt tapasztaljuk, hogy nem látjuk a kérés válaszát. 
 
-Ennek az az oka, hogy a szálak tovább képesek élni, mint az `Activity`, és ha egy hálózati hívás keresztül ível egy `Activity` váltáson/újralétrehozáson, akkor a szál még az előző `Activity`-re rendelkezik referenciával, így `NullPointerException`-t kapunk. 
+Ha annyira gyors az internet kapcsolatunk, hogy ezt nem tudjuk reprodukálni, akkor tegyünk késleltetést az aszinkron hívásba az alábbi kódrészlettel.
+
+```kotlin
+private fun async(call: () -> String) {
+    Thread {
+        val response = call()
+        Thread.sleep(2000)
+        runOnUiThread { showResponse(response) }
+    }.start()
+}
+```
+Miután kipróbáltuk, töröljük ki a `Thread.sleep(2000)` sort.
+
+Ennek az az oka, hogy a szálak tovább képesek élni, mint az `Activity`, és ha egy hálózati hívás keresztül ível egy `Activity` váltáson/újralétrehozáson, akkor a szál még az előző `Activity`-re rendelkezik referenciával. Ilyenkor vagy a memóriában ragad az előző `Activity` (ezt hívjuk *memory leak*-nek), vagy a rendszer megszünteti, ilyenkor a rá hivatkozáskor `NullPointerException`-t kaptunk. Ezeken a problémákon felül a kérésünk eredményét sem látjuk.
 
 Ezt úgy lehet kiküszöbölni, hogy az erős, referencia alapú csatolás helyett laza csatolást alkalmazunk. Ilyen esetben az `Activity` amikor előtérbe kerül (`onStart`) feliratkozik, majd ha háttérbe kerül (`onStop`) leiratkozik az eseményről. A hálózati hívás során pedig a választ nem direkt függvényhívásban állítjuk be, hanem csak egy eseményt váltunk ki.
 
 Az Android platform beépítve támogatja az események kezelését *Broadcast Receiver*-ek formájában. Viszont ezeket egy alkalmazáson belül használva az üzenet sorosítása miatt overhead jelentkezik, valamint kényelmetlen is a használatuk. 
 
-Helyettük használhatunk eseménybuszokat, melyek gyorsabbak és egyszerűbben is használhatóak a *Broadcast Receiverek*-nél (ellenben csak egy alkalmazáson/processen belül működnek, és a használóinak referenciára van szükségese az eseménybuszra).
+Helyettük használhatunk eseménybuszokat, melyek gyorsabbak és egyszerűbben is használhatóak a *Broadcast Receiverek*-nél (ellenben csak egy alkalmazáson/processen belül működnek, és a használóinak referenciára van szüksége az eseménybuszra).
 
 Számos 3rd party eseménybusz megoldás van, mi a [Greenrobot EventBus](https://github.com/greenrobot/EventBus) megoldását fogjuk használni. Ehhez vegyük fel a könyvtárat a függőségek közé:
 
@@ -589,16 +609,16 @@ Ahhoz, hogy a kiváltott eseményeket el tudjuk kapni, a `MainActivity`-ben defi
 ```kotlin
 @Subscribe(threadMode = ThreadMode.MAIN)
 fun onMoveUserResponse(event: MoveUserResponseEvent) {
-    showResponse("Move User Response:${event.response}")
+    showResponse("Move User Response: ${event.response}")
 }
 
 @Subscribe(threadMode = ThreadMode.MAIN)
 fun onWriteMessageResponse(event: WriteMessageResponseEvent) {
-    showResponse("Write Message Response:${event.response}")
+    showResponse("Write Message Response: ${event.response}")
 }
 ```
 
-Itt fontos, hogy a `@Subscribe` annotáció használva legyen, ez mondja meg hogy ez egy eseménykezelő metódus, valamint a thread mode `MAIN` legyen, mert így az események a főszálon kerülnek kézbesítésre. Fontos, hogy az elküldött objektumokat az osztály típusa szerint tudja a rendszer a megfelelő eseménykezelőknek elküldeni. Egy eseményhez több eseménykezelő metódus is lehet egyszerre beregisztrálva, ilyenkor mindegyik megkapja az elküldött eseményt.
+Itt fontos a `@Subscribe` annotation használata. A `@Subscribe` mondja meg azt, hogy ez egy eseménykezelő függvény, valamint azt, hogy a thread mode `MAIN` legyen. így az események a főszálon kerülnek kézbesítésre a függvényhez. Fontos, hogy az elküldött objektumokat az osztály típusa szerint tudja a rendszer a megfelelő eseménykezelőknek elküldeni. Egy eseményhez több eseménykezelő metódus is lehet egyszerre beregisztrálva, ilyenkor mindegyik megkapja az elküldött eseményt.
 
 Ezután regisztráljuk be az metódusainkat, pontosabban azt az osztályt amely ezeket tartalmazza, ami a `MainActivity` aktuális példánya (`this`). Azt szeretnénk, hogy akkor legyenek ezek az eseménykezelő metódusok aktívak, amikor az `Activity` előtérben van, így az `onStart`-ban iratkozunk fel, és az `onStop`-ban le.
 
@@ -618,9 +638,10 @@ Próbáljuk ki az alkalmazást. Láthatjuk, hogy most már a hálózati híváso
   
 Végül próbáljuk ki az alkalmazást működés közben: 
 
-<img src="./images/game.png" width="400" align="middle">
-
-<img src="./images/ui_fin.png" width="250" align="middle">
+<p align="center">
+<img src="./images/game.png" width="400">
+<img src="./images/stage2.png" width="250">
+</p>
 
 ## Bónusz feladat 1 - Extension function
 
@@ -632,12 +653,20 @@ username.encode()
 
 ## Bónusz feladat 2 - Válaszidő kijelzése
 
-Egészítsük ki az alkalmazást úgy, hogy a felhasználói felületen megjelenítsük a szerverrel való kommunikáció során tapasztalt átlagos válaszidőt (üzenet küldése és válasz megérkezése közti idő).
+Egészítsük ki az alkalmazást úgy, hogy a felhasználói felületen megjelenítsük a szerverrel való kommunikáció során tapasztalt válaszidőt (üzenet küldése és válasz megérkezése közti idő).
 
 Tipp: Az aktuális időt legegyszerűbben a következő hívással érhetjük el:
 
 ```kotlin
 val currentTime = System.currentTimeMillis()
+```
+
+Tipp: Kotlinban egy kódrészlet futásidejét az alábbi standard library függvényel egyszerűbben is mérhetjük:
+
+```kotlin
+val duration = measureTimeMillis {
+  //Measured code
+}
 ```
 
 ## Bónusz feladat 3 - Hálozat elérhető-e

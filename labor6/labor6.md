@@ -70,7 +70,7 @@ Az `AndroidManifest.xml`-be is vegyük fel előre az összes engedélyt, amire s
 Utolsó lépésként a projekt előkészítésében vegyük fel a következő függőségeket a modul szintű `build.gradle` fájlunkba:
 
 ```groovy
-implementation 'com.android.support:preference-v7:28.0.0-rc02'
+implementation 'com.android.support:preference-v7:28.0.0'
 implementation 'com.google.android.gms:play-services-location:15.0.1', {
     exclude group: 'com.android.support'
 }
@@ -709,6 +709,12 @@ private fun updateNotification(text: String) {
     notificationManager.notify(NOTIFICATION_ID, notification)
 }
 ```
+
+A `NotificationCompat.Builder` egyparaméteres konstruktora elavult, és ezt jelzi is nekünk a fejlesztőkörnyezet,
+de ezzel most nincs teendőnk. Röviden ennek az az oka, hogy az Android 8.0 (API level 26) óta az értesítéseket
+csatornához kell rendelni, és a csatorna azonosítóját a kétparaméteres konstruktor második paramétereként
+adnánk meg.  Ez a témakör túlmutat a jelenlegi labor témáján, bővebben
+[itt](https://developer.android.com/training/notify-user/channels) lehet a témáról olvasni.
 
 A `LocationService`-t indító `onStartCommand` függvény legelején állítsuk be a *foreground* módot:
 

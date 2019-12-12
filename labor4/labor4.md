@@ -19,7 +19,7 @@ Első lépésként indítsuk el az Android Studio-t, majd:
 2. A projekt neve legyen `Launcher`, a kezdő package pedig `hu.bme.aut.android.launcher`.
 3. Nyelvnek válasszuk a *Kotlin*-t.
 4. A minimum API szint legyen 19 (Android 4.4).
-5. Az *instant app* támogatást és az *AndroidX* használatát NE pipáljuk be.
+5. Az *instant app* támogatást NE pipáljuk be, az *AndroidX* támogatás maradjon bepipálva.
 
 ## Activity átnevezése
 
@@ -50,27 +50,15 @@ A `LauncherActivity`-hez tartozó `activity_launcher.xml` fájlt módosítsuk ú
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.viewpager.widget.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/vpLauncherPanels"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
 ```
 
-Vegyük fel az alkalmazás függőségeihez a `ViewPager`-t tartalmazó könyvtárat a `build.gradle (Module: app)` fájlban:
+A `ViewPager`-ben két `Fragment`-et szeretnénk megjeleníteni. Hozzuk létre a `fragment` nevű package-et!
 
-```groovy
-dependencies {
-    ...
-	implementation 'com.android.support:viewpager:28.0.0'
-    ...
-}
-```
-
-Ha a létrehozott projektben más `com.android.support` group-ban lévő függőségek verziója különbözik a fentebb megadottól, akkor egyeztessük össze velük a `ViewPager` verzióját!
-
-A `ViewPager`-ben két `Fragment`-et szeretnénk megjeleníteni. Hozzuk létre a `fragment` nevű csomagot!
-
-Hozzunk létre a `hu.bme.aut.android.launcher.fragment` package-ben két `Fragment` osztályt `DialerFragment` és `ApplicationsFragment` néven! Figyeljünk oda, hogy a két választható `Fragment` import közül mindig a support library-ből származót válasszuk! (A másikra rögtön figyelmeztetést kapnánk, mert már nem javasolt a használata.)
+Hozzunk létre a `hu.bme.aut.android.launcher.fragment` package-ben két `Fragment` osztályt `DialerFragment` és `ApplicationsFragment` néven! Figyeljünk oda, hogy a két választható `Fragment` import közül mindig az `androidx.fragment.app` library-ből származót válasszuk!
 
 ```kotlin
 class DialerFragment : Fragment() {
@@ -92,7 +80,7 @@ class ApplicationsFragment : Fragment() {
 }
 ```
 
-Hozzuk létre a hozzájuk tartozó layout fájlokat is (*Alt + Enter*), egyelőre tetszőleges tartalommal.
+Hozzuk létre a hozzájuk tartozó layout fájlokat is (<kbd>Alt</kbd> + <kbd>Enter</kbd>), egyelőre tetszőleges tartalommal.
 
 A `ViewPager` működéséhez szükség van egy adapterre, ami meghatározza az egyes oldalakon megjelenő `Fragment`-eket.
 
@@ -118,7 +106,7 @@ class LauncherPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter
 }
 ```
 
-Itt is fontos, hogy a `FragmentManager` és a `Fragment` osztályokat az `android.support.v4.app` package-ből importáljuk.
+Itt is fontos, hogy a `FragmentManager` és a `Fragment` osztályokat az `androidx.fragment.app` package-ből importáljuk.
 
 > Mivel a `getCount` függvény [egyetlen kifejezéssel tér vissza](https://kotlinlang.org/docs/reference/functions.html#single-expression-functions), nem kell törzset adnunk neki. Akár a visszatérési értékét is elhagyhatnánk (mivel kikövetkeztethető), ezt most csak a könnyebb érthetőség kedvéért nem tettük meg.
 
@@ -383,7 +371,7 @@ Az alkalmazásokat listázó `ApplicationsFragment` egy `RecyclerView`-t fog meg
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rvApplications"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
@@ -394,7 +382,7 @@ A `RecyclerView` külön libraryként érhető el. Vegyük fel a következő fü
 ```groovy
 dependencies {
     ...
-    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
     ...
 }
 ```
@@ -572,8 +560,8 @@ class ApplicationsFragment : Fragment(), ApplicationsAdapter.OnApplicationClicke
 
 Próbáljuk ki az alkalmazást!
 
-![](images/dialer.png)
-![](images/apps.png)
+![](images/view_dialer.png)
+![](images/view_apps.png)
 
 ## Önálló feladat
 
@@ -581,20 +569,17 @@ Próbáljuk ki az alkalmazást!
 
 Segítség a megoldáshoz:
 
-A gombok eseménykezelője legyen közös, a kattintott `View` objektum `id`-ja alapján állítsa be a felhívandó telefonszámot az `EditText`-ben (ha kell töröljön is). A hívás gomb megnyomására indítson hívást a beírt telefonszámra.
+A gombok eseménykezelője legyen közös, a kattintott `View` objektum `id`-ja alapján állítsa be a felhívandó telefonszámot
+az `EditText`-ben (ha kell töröljön is). A hívás gomb megnyomására indítson hívást a beírt telefonszámra.
 
 Példa a hívás indítására:
 
 ```kotlin
 val phoneNumber = "tel:+36201234567"
-val intent = Intent(Intent.ACTION_CALL, Uri.parse(phoneNumber))
+val intent = Intent(Intent.ACTION_DIAL, Uri.parse(phoneNumber))
 requireContext().startActivity(intent)
 ```
 
-A telefonhíváshoz engedély szükséges, ezt a Manifestben az `<application>` tagen kívül kell megadnunk. 
-
-```xml
-<uses-permission android:name="android.permission.CALL_PHONE" />
-```
-
-Ez egy veszélyesnek minősített engedély, ezért Android 6.0 (API level 23) felett futásidőben kellene elkérni. Jelen esetben ezt még kerüljük ki, az app modul `build.gradle` fájljában a `targetSDKVersion`-t állítsuk `22`-re (Android 5.1).
+A fenti megoldás valójában implicit intenttel a beépített tárcsázót hívja meg. Lehetséges lenne a közvetlen hívásindítás is,
+de ehhez a veszélyesnek minősített `CALL_PHONE` engedély szükséges, ezért Android 6.0 (API level 23) felett futásidőben kellene elkérni,
+ezt pedig egy későbbi labor során fogjuk csak vizsgálni.

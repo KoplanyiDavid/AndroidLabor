@@ -1,6 +1,6 @@
 # Labor 0 - Hello World
 
-A mérés célja, hogy bemutassa az Android fejlesztőkörnyezetet, az alkalmazáskészítés, illetve a tesztelés és fordítás folyamatát, az alkalmazás felügyeletét, valamint az emulátor és a fejlesztőkörnyezet funkcióit. Továbbá, hogy ismertesse egy Hello World alkalmazás elkészítésének módját. A mérés során a laborvezető részletesen bemutatja az eszközöket.
+A labor célja, hogy bemutassa az Android fejlesztőkörnyezetet, az alkalmazáskészítés, illetve a tesztelés és fordítás folyamatát, az alkalmazás felügyeletét, valamint az emulátor és a fejlesztőkörnyezet funkcióit. Ismertetjük egy Hello World alkalmazás elkészítésének módját és labor során a laborvezető részletesen bemutatja az eszközöket.
 
 A mérés az alábbi témákat érinti:
 
@@ -103,7 +103,7 @@ A fenti képen bal oldalon a létező virtuális eszközök listáját találjuk
     - Kamera opciók:
         - *WebcamX*, hardveres kamera, ami a számítógépre van csatlakoztatva
         - *Emulated*, egy egyszerű szoftveres megoldás, **most legalább az egyik kamera legyen ilyen**.
-        - *VirtualScrene*, egy kifinomultabb szoftveres megoldás, amelyben egy 3D világban mozgathatjuk a kamerát.
+        - *VirtualScene*, egy kifinomultabb szoftveres megoldás, amelyben egy 3D világban mozgathatjuk a kamerát.
     - *Boot Option*: Nemrég jelent meg az Android emulátor állapotáról való pillanatkép elmentésének lehetősége. Ez azt takarja, hogy a virtuális operációs rendszer csak felfüggesztésre kerül az emulátor bezáráskor (például a megnyitott alkalmazás is megmarad, a teljes állapotával), és *Quick boot* esetben a teljes OS indítása helyett másodperceken belül elindul az emulált rendszer. *Cold Boot* esetben minden alkalommal leállítja és újra indítja a virtális eszköz teljes operációs rendszerét.
     - Memória és tárhely: 
         - RAM: Ha kevés a rendszermemóriánk, nem érdemes 768 MB-nál többet adni, mert könnyen futhatunk problémákba. Ha az emulátor lefagy, vagy az egész OS megáll működés közben, akkor állítsuk alacsonyabbra ezt az értéket. 8 GB vagy több rendszermemória mellett nyugodtan állíthatjuk az emulátor memóriáját 1024, 1536, vagy 2048 MB-ra.
@@ -170,21 +170,21 @@ Ez a rész azoknak szól, akik korábban már használták az Eclipse nevű IDE-
 
 ### Billentyűkombinációk
 
-*   **CTRL + ALT + L:** Kódformázás
-*   **CTRL + SPACE:** Kódkiegészítés
-*   **SHIFT + F6:** Átnevezés (Mindenhol)
-*   **F2:** A következő error-ra ugrik. Ha nincs error, akkor warningra.
-*   **CTRL + Z** illetve **CTRL + SHIFT + Z:** Visszavonás és Mégis
-*   **CTRL + P:** Paraméterek mutatása
-*   **ALT + INSERT:** Metódus generálása
-*   **CTRL + O:** Metódus felüldefiniálása
-*   **CTRL + F9:** Fordítás
-*   **SHIFT + F10:** Fordítás és futtatás
-*   **SHIFT SHIFT:** Keresés mindenhol
-*   **CTRL + N:** Keresés osztályokban
-*   **CTRL + SHIFT + N:** Keresés fájlokban
-*   **CTRL + ALT + SHIFT + N:** Keresés szimbólumokban (például függvények, property-k)
-*   **CTRL + SHIFT + A:** Keresés a beállításokban, kiadható parancsokban.
+*   <kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>L</kbd>: Kódformázás
+*   <kbd>CTRL</kbd> + <kbd>SPACE</kbd>: Kódkiegészítés
+*   <kbd>SHIFT</kbd> + <kbd>F6</kbd> Átnevezés (Mindenhol)
+*   <kbd>F2</kbd>: A következő error-ra ugrik. Ha nincs error, akkor warningra.
+*   <kbd>CTRL</kbd> + <kbd>Z</kbd> illetve <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>Z</kbd>: Visszavonás és Mégis
+*   <kbd>CTRL</kbd> + <kbd>P</kbd>: Paraméterek mutatása
+*   <kbd>ALT</kbd> + <kbd>INSERT</kbd>: Metódus generálása
+*   <kbd>CTRL</kbd> + <kbd>O</kbd>: Metódus felüldefiniálása
+*   <kbd>CTRL</kbd> + <kbd>F9</kbd>: Fordítás
+*   <kbd>SHIFT</kbd> + <kbd>F10</kbd>: Fordítás és futtatás
+*   <kbd>SHIFT</kbd> <kbd>SHIFT</kbd>: Keresés mindenhol
+*   <kbd>CTRL</kbd> + <kbd>N</kbd>: Keresés osztályokban
+*   <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>N</kbd>: Keresés fájlokban
+*   <kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>SHIFT</kbd> + <kbd>N</kbd>: Keresés szimbólumokban (például függvények, property-k)
+*   <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>A</kbd>: Keresés a beállításokban, kiadható parancsokban.
 
 ### Eszközök, szerkesztők
 
@@ -214,7 +214,7 @@ A Studio sok sablont tartalmaz, röviden tekintsék át a lehetőségeket:
 
 *   Projektfában, projektre jobb gombbal kattintva -> new -> module
 *   Projektfában, modulon belül, "java"-ra kattintva jobb gombbal -> new
-*   Forráskódban *ALT+INSERT* billentyűkombinációra
+*   Forráskódban <kbd>ALT</kbd>+<kbd>INSERT</kbd> billentyűkombinációra
 
 ## Android Profiler
 

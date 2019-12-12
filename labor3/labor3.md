@@ -2,15 +2,25 @@
 
 A labor célja, hogy bemutassa, hogyan lehet ún. Master/Detail nézetet tartalmazó alkalmazást készíteni, kiemelve a `Fragment`-eket és az erőforrásminősítők használatát.
 
-Első lépésben készítsünk egy új alkalmazást, neve legyen `Todo` (Kotlin supportot ne felejtsük el kipipálni!).
+Első lépésként indítsuk el az Android Studio-t, majd:
 
-A package név legyen: `hu.bme.aut.android.todo`.
+1. Hozzunk létre egy új projektet, válasszuk az *Add No Activity* lehetőséget.
+2. A projekt neve legyen `Todo`, a kezdő package pedig `hu.bme.aut.android.todo`.
+3. Nyelvnek válasszuk a *Kotlin*-t.
+4. A minimum API szint legyen 19 (Android 4.4).
+5. Az *instant app* támogatást NE pipáljuk be, az *AndroidX* használata maradjon bepipálva.
 
-A sablonválasztónál válasszuk a *Master/Detail Flow* opciót!
+<p align="center">
+  <img src="./assets/addnoactivity.png" width="300">
+</p>
 
-<img src="./assets/master-detail-choose_new.PNG" width="200" align="middle">
+Amikor az üres projekt elkészült, hozzunk létre egy Master/Detail Flow-t a `hu.bme.aut.android.todo` package-ben.
 
-A következő ablakban írjuk be rendre, hogy *Todo*, *Todos*, *Todos*! Ennek csak a generált sablonban van szerepe, de legalább az `Activity` nevét nem kell később átírnunk.
+<p align="center">
+    <img src="./assets/newmasterdetailflow.png" width="800">
+</p>
+
+A következő ablakban írjuk be rendre, hogy *Todo*, *Todos*, *Todos*. Ennek csak a generált sablonban van szerepe, de legalább az `Activity` nevét nem kell később átírnunk. Ezt követően pipáljuk be a Launcher Activity checkboxot, majd kattintsunk a Finishre.
 
 Laborvezetővel elemezzék a generált alkalmazás működését, próbálják ki emulátoron, készüléken! A Master/Detail nézet célja, hogy egyetlen alkalmazással megoldjuk egy lista és annak egy elemének részletes megjelenítését tableten és mobiltelefonon egyaránt. Működésének a lényege, hogy egy `Activity`-hez tartozó layoutnak kétféle változata van, egy kétpaneles és egy egypaneles változat. Az ezek közötti választást erőforrás minősítőkkel biztosítjuk, hogy tableten a kétpaneles változat töltődjön be, míg mobilon az egypaneles. 
 

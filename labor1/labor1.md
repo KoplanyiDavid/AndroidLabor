@@ -12,7 +12,7 @@ A labor során a következő funkciókat fogjuk megvalósítani:
 * Játék logika elkezdése
 
 A laborhoz kapcsolódó önálló feladat:
-* Játék logika megvalósítása: győzelem ellenőrzése
+* Játék logika megvalósítása: győzelem ellenőrzése 
 
 A megvalósítandó játék felhasználói felületét az alábbi képernyőképek szemléltetik:
 
@@ -30,19 +30,19 @@ Első lépésként indítsuk el az Android Studio-t, majd:
 1. Hozzunk létre egy új projektet, válasszuk az *Empty Activity* lehetőséget.
 2. A projekt neve legyen `TicTacToe`, a kezdő package pedig `hu.bme.aut.android.tictactoe`.
 3. Nyelvnek válasszuk a *Kotlin*-t.
-4. A minimum API szint legyen 19 (Android 4.4).
-5. Az *instant app* támogatást és az *AndroidX* használatát NE pipáljuk be.
+4. A minimum API szint legyen *API21: Android 5.0*.
+5. Az *instant app* támogatást NE pipáljuk be.
 
 Sikeres projekt létrehozás után a laborvezető vezetésével vizsgálja meg a forrás felépítését.
 
-## Activity-k létrehozása
+## Activityk létrehozása
 
 A megvalósítandó alkalmazás működési elve a következő:
 
 1. Az alkalmazás indításakor a `MainActivity` jelenik meg.
 2. A `MainActivity`-ről lehet új játékot indítani az *Új játék* menüpont hatására, ez átnavigál a `GameActivity`-re.
 3. A `MainActivity`-ről meg lehet tekinteni az *Eredmények*-et, ami jelenleg csak egy `Toast`-ot dob fel egy üzenettel (ezt a funkciót opcionálisan később meg lehet valósítani, ha a perzisztencia témakört már vettük előadáson).
-4. A `MainActivity`-ről meg lehet nézni az alkalmazás készítőiről szóló információkat az *Infó* menüt választva. Ez a funkció átnavigál az `AboutActivity`-re, ami viszont Manifest beállítás miatt csak dialógus formában fog megjelenni.
+4. A `MainActivity`-ről meg lehet nézni az alkalmazás készítőiről szóló információkat az *Infó* menüt választva. Ez a funkció átnavigál az `AboutActivity`-re, ami dialógus formában fog megjelenni.
 
 
 ## Szöveges erőforrások
@@ -60,22 +60,28 @@ Navigáljunk a `res/values/strings.xml`-re, ahol a projekt szöveges erőforrás
 </resources>
 ```
 
-## Szükséges további Activity-k létrehozása
+## Szükséges további Activityk létrehozása
 
 A fentiek alapján látható tehát, hogy a meglévő `MainActivity` mellett még két másik `Activity`-t, a `GameActivity`-t és az `AboutActivity`-t kell létrehoznunk. `Activity` létrehozásakor tipikusan az alábbi forrás állományok változnak:
 
 * Létrejön az `Activity`-hez tartozó Kotlin fájl.
 * Létrejön az `Activity`-hez tartozó layout XML.
 * Az `AndroidManifest.xml`-be bekerül az `Activity` az `<application>` tag-en belül.
-* Az `Activity`-hez tartozó menü XML létrejön (*Basic Activity* létrehozása esetén).
 
 Az `Activity` létrehozást azonban megkönnyíti az Android Studio és a fenti lépéseket nem kell egyesével elvégeznie a fejlesztőnek.
 
-1. A meglévő `Activity`-t tartalmazó package-re jobb egérgombbal kattintva válasszuk a *New -> Activity -> Basic Activity* opciót és hozzuk létre a másik két `Activity`-t (`AboutActivity`, `GameActivity`), *Source Language*-nek válasszuk a Kotlint. `Activity` létrehozásakor megadható, hogy melyik legyen a *szülő* `Activity`, amihez a vissza gomb visszanavigálja a felhasználót. Mindkét esetben legyen ez a `MainActivity` (ezt a ...-ra kattintva név szerint kikereshetjük).
-2. Létrehozás után a `res/values/strings.xml`-ben állítsuk be a két új `Activity` címét amelyet a létrehozáskor a Studio automatikusan legenerált nekünk mint erőforrás (Például: *Az alkalmazásról*, illetve *Játék*).
-3. Nyissuk meg a két új `Activity` kódját, vizsgáljuk meg azokat és a fölösleges `FloatingActionButton`-t illetve annak listener-ét távolítsuk el. Ha ez kész, akkor az `Activity`-hez rendelt layout-ból is töröljük a widgetet (Tipp: az adott `Activity` `onCreate()` metódusában a `setContentView()`-ban az adott layout-ra CTRL + kattintással (vagy a Ctrl + B megnyomásával) könnyen megnyithatjuk az XML leírót).
-4. Az `AboutActivity`-ből távolítsuk el a `Toolbar` kezeléséért felelős sorokat is, mivel erre később nem lesz szükségünk. A hozzá tartozó layout fájlból is távolítsuk el a `Toolbar`-t.
-5. Állítsuk be a Manifest-ben, hogy az `AboutActivity` dialógus formában jelenjen meg, a `theme` attribútum beállításával (a kódkiegészítés segít beírni a megfelelő témát a lehetőségek közül, kezdjük el a kezdő betűket beírni):
+1. A meglévő `Activity`-t tartalmazó package-re jobb egérgombbal kattintva válasszuk a *New -> Activity -> Empty Activity* opciót és hozzuk létre a másik két `Activity`-t (`AboutActivity`, `GameActivity`), *Source Language*-nek válasszuk a Kotlint.
+
+2. Létrehozás után a `res/values/strings.xml`-ben a `<resources>` tagen belül vegyük fel a két új `Activity` címét: 
+
+   ```xml
+   <string name="title_activity_about">Az alkalmazásról</string>
+   <string name="title_activity_game">Játék</string>
+   ```
+
+3. Állítsuk be a Manifestben azt, hogy az `AboutActivity` dialógus formában jelenjen meg, a `theme` attribútum beállításával 
+
+   * a kódkiegészítés segít megtalálni a megfelelő témát a lehetőségek közül, kezdjük el a kezdő betűket beírni
 
 ```xml
 <activity
@@ -88,20 +94,30 @@ Az `Activity` létrehozást azonban megkönnyíti az Android Studio és a fenti 
         android:value="hu.bme.aut.android.tictactoe.MainActivity" />
 </activity>
 ```
+> A fenti kódrészletben az `AboutActivity` címét is beállítjuk a `label` attribútum beállításával
+
+4. Állítsuk be a `GameActivity` címét is
+
+```xml
+<activity
+    android:name=".GameActivity"
+    android:label="@string/title_activity_game">
+</activity>
+```
 
 *Létrehozás után ellenőrizzük a laborvezető segítségével a létrejött kódokat!*
 
 ## MainActivity felület:
 
-A `MainActivity` a fenti ábra alapján három menüpontot tartalmaz középre igazodva, ezt a felületet a hozzá tartozó `activity_main.xml`-ben hozhatjuk létre. Mivel a Studio már alapértelmezetten `ConstraintLayout`-ot generál, így most ezt fogjuk használni a megvalósításra. Az anyagban ennek működése csak később következik, így alább megtalálható a kész XML leíró, viszont akinek van kedve, a gif alapján kipróbálhatja a használatát:
+A `MainActivity` a fenti ábra alapján három menüpontot tartalmaz középre igazítva. Ezt a felületet a hozzá tartozó `res/layout/activity_main.xml`-ben hozhatjuk létre. Mivel a Studio már alapértelmezetten `ConstraintLayout` alapú nézetet generál, így most ezt fogjuk használni a megvalósításra. Az anyagban ennek működése csak később következik, így alább megtalálható a kész XML leíró. Akinek van kedve, a gif alapján kipróbálhatja a használatát:
 
 ![](images/constraint_layout_1.gif)
 
-*Tipp: Shift + Kattintással lehet több elemet kijelölni*
+> Tipp: Shift + Kattintással lehet több elemet kijelölni
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -112,9 +128,9 @@ A `MainActivity` a fenti ábra alapján három menüpontot tartalmaz középre i
         android:id="@+id/btnStart"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/btn_start"
         app:layout_constraintBottom_toTopOf="@+id/btnHighScore"
         app:layout_constraintEnd_toEndOf="parent"
@@ -127,9 +143,9 @@ A `MainActivity` a fenti ábra alapján három menüpontot tartalmaz középre i
         android:id="@+id/btnHighScore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/btn_highscore"
         app:layout_constraintBottom_toTopOf="@+id/btnAbout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -141,23 +157,22 @@ A `MainActivity` a fenti ábra alapján három menüpontot tartalmaz középre i
         android:id="@+id/btnAbout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/btn_about"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnHighScore" />
-    	
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 ```
 
 ## Highscore gomb eseménykezelő
 
-Az *Eredmények* menüpontra kattintva ahogy említettük egy `Toast` üzenet jelenjen meg. Ehhez meg kell keresni az *Eredmények* menüpont gombját és be kell állítani az alábbi eseménykezelőt neki a `MainActivity` `onCreate()` függvényén belül:
+Az *Eredmények* menüpontra kattintva egy `Toast` üzenetet kell megjeleníteni. Ehhez meg kell keresni az *Eredmények* menüpont gombját és be kell állítani neki az alábbi eseménykezelőt a `MainActivity` `onCreate()` függvényén belül:
 
 ```kotlin
 val btnHighScore = findViewById<Button>(R.id.btnHighScore)
@@ -166,22 +181,21 @@ btnHighScore.setOnClickListener {
 }
 ```
 
-> A [`setOnClickListener`](https://developer.android.com/reference/android/view/View.html#setOnClickListener(android.view.View.OnClickListener)) függvény valójában egy [`View.OnClickListener`](https://developer.android.com/reference/android/view/View.OnClickListener) interfészt megvalósító objektumot vár paraméterként, amelynek egyetlen megvalósítandó függvénye van. Ezt létrehozhatnánk a Java-s [anonim osztályok stílusában](https://kotlinlang.org/docs/reference/object-declarations.html#object-expressions) is, de helyette kihasználjuk, hogy Kotlinban elsőrendű tagjai a nyelvnek a függvények, és rendelkezünk igazi függvény típusokkal. Jelen esetben a paraméterben egy olyan [lambdát](https://kotlinlang.org/docs/reference/lambdas.html#lambda-expressions-and-anonymous-functions) adunk át, amely fejléce megegyezik az elvárt interfész egyetlen függvényének fejlécével, a [SAM conversion](https://kotlinlang.org/docs/reference/java-interop.html#sam-conversions) nyelvi funkció pedig a háttérben ez alapján a lambda alapján létrehozza a megfelelő `View.OnClickListener` példányt. 
+> A [`setOnClickListener`](https://developer.android.com/reference/android/view/View.html#setOnClickListener(android.view.View.OnClickListener)) függvény valójában egy [`View.OnClickListener`](https://developer.android.com/reference/android/view/View.OnClickListener) interfészt megvalósító objektumot vár paraméterként, amelynek egyetlen megvalósítandó függvénye van. Ezt létrehozhatnánk a Java-s [anonim osztályok stílusában](https://kotlinlang.org/docs/reference/object-declarations.html#object-expressions) is, de helyette kihasználjuk, hogy a függvények elsőrendű tagjai a Kotlin nyelvnek, így rendelkezünk igazi függvény típusokkal. Jelen esetben a paraméterben egy olyan [lambda kifejezést](https://kotlinlang.org/docs/reference/lambdas.html#lambda-expressions-and-anonymous-functions) adunk át, amely fejléce megegyezik az elvárt interfész egyetlen függvényének fejlécével, a [SAM conversion](https://kotlinlang.org/docs/reference/java-interop.html#sam-conversions) nyelvi funkció pedig a háttérben a lambda alapján létrehozza a megfelelő `View.OnClickListener` példányt. 
 
 ## AboutActivity felület
 
-Ahogy korábban említettük az *Infó* menü elindítja az új `AboutActivity`-t, ezért elsőként készítsük el az `AboutActivity` felületét, melyet a `content_about.xml` ír le. Mint korábban, itt is lehet `ConstraintLayout`-ot készíteni a segítséggel, vagy alább megtalálható az XML:
+Ahogy korábban említettük, az *Infó* menü elindítja az `AboutActivity`-t. Elsőként készítsük el az `AboutActivity` felületét, melyet a `res/layout/activity_about.xml` ír le. Mint korábban, itt is lehet `ConstraintLayout`-ot készíteni a segítséggel, vagy alább megtalálható az XML:
 
 ![](images/constraint_layout_2.gif)
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".AboutActivity"
     tools:showIn="@layout/activity_about">
 
@@ -189,25 +203,27 @@ Ahogy korábban említettük az *Infó* menü elindítja az új `AboutActivity`-
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/txt_about"
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-		
-</android.support.constraint.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
 ```
 
 ## Játék logika
 
-A TicTacToe, 3x3-as táblajáték logikáját egy külön osztályban valósítjuk meg egy [*Singleton*](https://en.wikipedia.org/wiki/Singleton_pattern) formájában, így könnyen hozzáférhetünk (amennyiben nem ismeri ezt a tervezési mintát, érdemes utána olvasni, illetve rákérdezni a laborvezetőnél).
+A 3x3-as TicTacToe táblajáték logikáját külön osztályban valósítjuk meg egy [*Singleton*](https://en.wikipedia.org/wiki/Singleton_pattern) formájában, így könnyen hozzáférhetünk majd.
 
-Készítsünk a forráson belül egy `model` package-t, majd abban egy `TicTacToeModel` osztályt (a package-en jobb egérgomb, majd *New -> Kotlin File/Class*). Az osztály egy 3x3-as mátrixban tárolja a játéktér mezőinek tartalmát és különféle publikus függvényeket biztosít a játéktér lekérdezéséhez és módosításához.
+> Amennyiben nem ismeri ezt a tervezési mintát, érdemes utánanézni, illetve rákérdezni a laborvezetőnél.
+
+Készítsünk a `tictactoe` package-en belül egy `model` package-et, majd abban egy `TicTacToeModel` osztályt (a package-en jobb egérgomb, majd *New -> Kotlin File/Class*). Az osztály egy 3x3-as mátrixban tárolja a játéktér mezőinek tartalmát és különféle publikus függvényeket biztosít a játéktér lekérdezéséhez és módosításához.
 
 ```kotlin
 object TicTacToeModel {
@@ -258,9 +274,9 @@ object TicTacToeModel {
 
 > A Kotlin standard library számos függvényt nyújt különböző collection-ök egyszerű létrehozására. Figyeljük meg a kódban az [`arrayOf`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/array-of.html) és a [`byteArrayOf`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/byte-array-of.html) használatát, amelyek meghívásával létrehozunk tömböket, és azonnal fel is töltjük őket elemekkel.
 
-## Navigáció megvalósítása Activity-k közt
+## Navigáció megvalósítása Activityk közt
 
-A következő lépésként valósítsuk meg a navigációt (váltást) az `Activity`-k között. Az *Új játék* menüpont hatására a `GameActivity`-re, az *Infó* menüpont hatására pedig az `AboutActivity`-re kell átváltanunk. `Activity`-k közti váltást `Intent` segítségével tudunk megtenni - beszéljék meg a laborvezetővel az `Intent`-ek alapjait. Ezt a témát előadáson később mélyebben fogjuk még érinteni.
+A következő lépésként valósítsuk meg a navigációt (váltást) az `Activity`-k között. Az *Új játék* menüpont hatására a `GameActivity`-re, az *Infó* menüpont hatására pedig az `AboutActivity`-re kell átváltanunk. `Activity`-k közti váltást egy  `Intent` segítségével tudunk implementálni - beszéljék meg a laborvezetővel az `Intent`-ek alapjait. Ezt a témát előadáson később mélyebben fogjuk még érinteni.
 
 Valósítsuk meg ezen két gomb eseménykezelőjét szintén a `MainActivity` `onCreate()` függvényében:
 
@@ -283,7 +299,7 @@ A `GameActivity`-re való navigáció előtt az előbb létrehozott `TicTacToeMo
 
 A következő lépés a játéktér kirajzolása és annak hozzárendelése a `GameActivity`-hez.
 
-Első lépésként hozzunk létre egy `view` package-et a meglévő package hierarchia alá, majd abban egy `TicTacToeView` osztályt, mely a `View` ősosztályból származik le az alábbi vázzal:
+Első lépésként a meglévő `tictactoe` package-ben hozzunk létre egy `view` package-et , majd abban egy `TicTacToeView` osztályt, mely a `View` ősosztályból származik:
 
 ```kotlin
 class TicTacToeView : View {
@@ -345,13 +361,13 @@ class TicTacToeView : View {
 }
 ```
 
-Látható, hogy az osztály egy nézet rajzolásáért felelős. Létrehozunk két `Paint` objektumot, melyek a háttér, illetve a pályaelemek rajzolásához lesznek használva. A konstruktorok mint látjuk csak egy `super()` hívást valósítanak meg, mivel az `init` blokk végzi ebben a megvalósításban a különböző elemek inicializálását. Fontos, hogy objektumokat ne az `onDraw()`-ban hozzunk létre, hiszen az `onDraw()` gyakran meghívódik (minden képkocka rajzolásakor) és sokszor hozná létre feleslegesen őket, lassítva ezzel a működést és megnehezítve a *garbage collector* dolgát.
+Látható, hogy az osztály egy nézet rajzolásáért felelős. Létrehozunk két `Paint` objektumot, melyek a háttér, illetve a pályaelemek rajzolásához lesznek használva. A konstruktorok, mint látjuk csak egy `super()` hívást valósítanak meg, mivel ebben a megvalósításban  az `init` blokk végzi az osztály inicializálását. Fontos, hogy az `onDraw()`-ban ne hozzunk létre objektumokat, hiszen az `onDraw()` minden képkocka kirajzolásakor meghívódik és sokszor hozná létre feleslegesen őket, lassítva ezzel a működést és megnehezítve a *garbage collector* dolgát.
 
 Az osztály egyik leglényegesebb függvénye az `onDraw`, mely a kapott `canvas` objektumra rajzolja ki a nézet tartalmát. A jelenlegi implementáció feketére festi a területet és meghívja a játéktér kirajzolásért (négyzetrács) és a játékosok (X és O) kirajzolásáért felelős – egyelőre még üres – függvényeket.
 
-Az `onMeasure` függvény felüldefiniálásával biztosítható, hogy a nézet mindig négyzetes formában jelenjen meg (ugyanakkora legyen a szélessége, mint a magassága).
+Az `onMeasure` függvény felüldefiniálásával biztosítható, hogy a nézet mindig négyzetes formában jelenjen meg, azaz ugyanakkora legyen a szélessége, mint a magassága.
 
-Végül az `onTouchEvent` függvényben tudjuk kezelni az érintés eseményeket. Jelenleg az `ACTION_DOWN` eseményt vizsgáljuk, de más érintés események is hasonlóan elkaphatóak itt.
+Végül az `onTouchEvent` függvényben tudjuk kezelni az érintés eseményeket. Jelenleg az `ACTION_DOWN` eseményt vizsgáljuk, de más érintés események is hasonlóan kezelhetők itt.
 
 > Az [`init`](https://kotlinlang.org/docs/reference/classes.html#constructors) blokkban végezhetjük el az osztályunk olyan inicializálási feladatait, amelyekre bármilyen konstruktor meghívásakor szükségünk van.
 
@@ -359,40 +375,39 @@ Végül az `onTouchEvent` függvényben tudjuk kezelni az érintés eseményeket
 
 > Kotlinban a `(float) x` és `(int) y` stílusú castolások helyett a numerikus típusok között a `toInt()`, `toFloat()`, [és hasonló függvényekkel](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-number/index.html) végezhetünk konverziót.
 
-Ahhoz, hogy a `GameActivity` ezt a játékteret megjelenítse, módosítsuk a hozzá tartozó layout fájlt (`content_game.xml`). A felület egy szürkés hátterű `ConstraintLayout` közepén jelenítse meg a `TicTacToeView` nézetünket:
+Ahhoz, hogy a `GameActivity` ezt a játékteret megjelenítse, módosítsuk a hozzá tartozó `res/layout/activity_game.xml` fájlt. A felület egy szürkés hátterű `ConstraintLayout` közepén jelenítse meg a `TicTacToeView` nézetet:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".GameActivity"
     android:background="#888888"
+    tools:context=".GameActivity"
     tools:showIn="@layout/activity_game">
 
     <hu.bme.aut.android.tictactoe.view.TicTacToeView
         android:id="@+id/ticTacToeView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.495" />
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 ```
 
 *Fontos, hogy az itt szereplő package név a saját `TicTacToeView` osztályunk neve előtt azonos legyen a nézet forrásának tetején szereplő package névvel, egyébként hibát fogunk kapni, amikor megpróbáljuk megnyitni ezt a képernyőt.*
 
-Következő lépésként valósítsuk meg a játéktér kirajzolását a `drawGameArea` függvényben, azaz rajzoljuk meg a vízszintes és függőleges vonalakat:
+Következő lépésként valósítsuk meg a játéktér kirajzolását a `TicTacToeView` `drawGameArea` függvényében, azaz rajzoljuk meg a vízszintes és függőleges vonalakat:
 
 ```kotlin
 private fun drawGameArea(canvas: Canvas) {
@@ -412,7 +427,7 @@ private fun drawGameArea(canvas: Canvas) {
 }
 ```
 
-Ezt követően valósítsuk meg a modell alapján a játéktérbe az X-ek és O-k kirajzolását az `drawPlayers` függvényben. A megvalósítás során végigmegyünk a játéktér mátrixon és a benne található értékek szerint O-t vagy X-et rajzolunk az adott mezőbe:
+Ezt követően valósítsuk meg a modell alapján a játéktérben az X-ek és O-k kirajzolását az `drawPlayers` függvényben. A megvalósítás során végigmegyünk a játéktér mátrix elemein és a benne található értékek szerint O-t vagy X-et rajzolunk az adott mezőbe:
 
 ```kotlin
 private fun drawPlayers(canvas: Canvas) {
@@ -449,7 +464,7 @@ private fun drawPlayers(canvas: Canvas) {
 }
 ```
 
-> A Kotlin [`for` ciklusának](https://kotlinlang.org/docs/reference/control-flow.html#for-loops) nincs három részre bontott, `;`-vel elválasztott verziója, csak a fenti kódban is látható *for each* stílusú `for` ciklust támogatja a nyelv, amellyel azonban bármilyen iterálható objektumon ugyanúgy tudunk iterálni. Ha egyszerűen számokon szeretnénk ezt megtenni, létrehozhatunk egy iterálható [`Range`](https://kotlinlang.org/docs/reference/ranges.html)-et például a `0..3` szintaxissal amivel egy zárt intervallumot kapunk, vagy a fent használt [`0 until 3`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/until.html) szintaxissal, ami egy jobbról nyílt intervallumot hoz létre, tehát a `3` értéket már nem fogja felvenni a ciklus változó.
+> A Kotlin [`for` ciklusának](https://kotlinlang.org/docs/reference/control-flow.html#for-loops) nincs három részre bontott, `;`-vel elválasztott verziója. Csak a fenti kódban is látható *for each* stílusú `for` ciklust támogatja a nyelv, amellyel azonban bármilyen iterálható objektumon ugyanúgy tudunk iterálni. Ha egyszerűen számokon szeretnénk ezt megtenni, létrehozhatunk egy iterálható [`Range`](https://kotlinlang.org/docs/reference/ranges.html)-et például a `0..3` szintaxissal amivel egy zárt intervallumot kapunk, vagy a fent használt [`0 until 3`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/until.html) szintaxissal, ami egy jobbról nyílt intervallumot hoz létre, tehát a `3` értéket már nem fogja felvenni a ciklus változó.
 
 Végül valósítsuk meg az érintés eseményre való reagálást úgy, hogy a megfelelő mezőbe – ha az üres – elhelyezzük az aktuális játékost, melyet a modell `nextPlayer` változója reprezentál. 
 
@@ -474,10 +489,10 @@ override fun onTouchEvent(event: MotionEvent?): Boolean {
 
 ## Alkalmazás ikon lecserélése
 
-Az alkalmazás ikonját jelenleg a `res/drawable[-ldpi/mdpi/hdpi/xhdpi/...]` mappákban található `ic_launcher.png` jelképezi. A laborvezető segítségével keressen egy új ikont és cserélje le. Nem muszáj az ikont minden felbontásban elkészíteni, egyszerűen elhelyezhet egy méretet a `drawable` mappában is (melyet létre kell hozni), ekkor természetesen különböző felbontású eszközökön torzulhat az ikon képe.
+Az alkalmazás ikonját jelenleg a `res/mipmap[-ldpi/mdpi/hdpi/xhdpi/...]` mappákban található `ic_launcher.png` jelképezi. A laborvezető segítségével keressen egy új ikont és cserélje le. Nem muszáj az ikont minden felbontásban elkészíteni, egyszerűen elhelyezhet egy méretet a `mipmap` mappában is (melyet létre kell hozni), ekkor természetesen különböző felbontású eszközökön torzulhat az ikon képe.
 
 ## Játéklogika ellenőrzése - önálló feladat
 
-Valósítson meg egy függvényt, mely minden lépés után leellenőrzi, hogy nem győzött-e valamelyik játékos, vagy nincs-e döntetlen. Amennyiben vége a játéknak, egy `Toast` üzenettel jelezze ezt a felhasználónak és lépjen vissza a főmenübe. A laborvezető segítségével vizsgálja meg, hogy a `View` osztályból hogyan érhető el az őt tartalmazó "host" `Activity`, aminek így például egy `endGame()` függvénye meghívható, ami megvalósítja a fent leírt játék befejezést.
+Valósítson meg egy függvényt, mely minden lépés után leellenőrzi, hogy győzött-e valamelyik játékos, vagy nincs-e döntetlen. Amennyiben vége a játéknak, egy `Toast` üzenettel jelezze ezt a felhasználónak és lépjen vissza a főmenübe. A laborvezető segítségével vizsgálja meg, hogy a `View` osztályból hogyan érhető el az őt tartalmazó "host" `Activity`, aminek így például egy `endGame()` függvénye meghívható, ami megvalósítja a fent leírt játék befejezést.
 
 Jó munkát kívánunk!

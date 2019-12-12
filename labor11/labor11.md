@@ -70,17 +70,15 @@ if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permissio
 
 A labor során egy egyszerű telefonkönyv alkalmazást fogunk elkészíteni. Az alkalmazás meg fogja jeleníteni a telefonon tárolt névjegyeket, illetve egy névjegyre kattintással hívást kezdeményez az ahhoz tartozó elsődleges telefonszámra.
 
-Hozzunk létre egy új projektet Android Studio-ban `Contacts` néven. A *Company domain* mező tartalmát töröljük ki és hagyjuk is üresen.
+Hozzunk létre egy új projektet Android Studio-ban! Válasszuk az  *Empty Activity*-t, az alkalmazás neve legyen `Contacts`, a package név `hu.bme.aut.android.contacts`. A minimum SDK szint legyen *API 19: Android 4.4 (KitKat)*, a többi beállítást hagyjuk változatlanul.
 
-A package név legyen `hu.bme.aut.android.contacts`. A támogatott eszköz formátum legyen *Phone and Tablet*, a minimum SDK szint legyen *API 19: Android 4.4 (KitKat)*.
-
-A projekthez kezdésnek válasszunk egy *Empty Activity*-t, melynek neve legyen `ContactsActivity`.
+A létrejött Activity-t nevezzük át (<kbd>Shift+F6</kbd>) `ContactsActivity`-re, valamint a felület leíróját is `activity_contacts`-ra.
 
 Miután létrejött a projekt, vegyük fel a `RecyclerView` könyvtárat függőségként a modul szintű `build.gradle` fájlban:
 
 ```groovy
 dependencies {
-    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
 }
 ```
 
@@ -99,13 +97,13 @@ Készítsük el az alkalmazás felhasználói felületét a `res/layout/activity
     android:id="@+id/activity_contacts"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".ContactsActivity">
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvContacts"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -244,6 +242,16 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>(
 }
 ```
 
+Hozzunk létre egy `CursorExtensions` Kotlin fájlt a `util` csomagban, és definiáljuk benne az alábbi `extensions functiont`:
+
+```kotlin
+fun Cursor.getStringByColumnName(colName: String) = this.getString(this.getColumnIndex(colName))
+```
+
+Ez pusztán olvashatóbbá teszi majd a következő kódunkat. A `Cursor` API-ja csak oszlopindex alapján tud visszaadni adatot,
+de nekünk oszlopnév alapján kellene, és ehhez először az indexet kell lekérdezni az oszlopnév alapján. Ez a függvény
+ezt a két lépést fogja össze.
+
 Adjuk hozzá a `ContactsActivity`-hez az alábbi, névjegyek lekérdezését megvalósító függvényeket:
 
 ```kotlin
@@ -276,8 +284,8 @@ private fun getContacts(contactCursor: Cursor): List<Contact> {
     while (contactCursor.moveToNext()) {
         val hasPhoneNumber = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)).toInt()
         if (hasPhoneNumber != 0) {
-            val id = contactCursor.getString(ContactsContract.Contacts._ID)
-            val name = contactCursor.getString(ContactsContract.Contacts.DISPLAY_NAME)
+            val id = contactCursor.getStringByColumnName(ContactsContract.Contacts._ID)
+            val name = contactCursor.getStringByColumnName(ContactsContract.Contacts.DISPLAY_NAME)
 
             val contactPhoneNumber = getContactPhoneNumber(id)
 
@@ -297,7 +305,7 @@ private fun getContactPhoneNumber(id: String): String {
         return if (phoneResultCursor == null || !phoneResultCursor.moveToNext()) {
             ""
         } else {
-            phoneResultCursor.getString(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            phoneResultCursor.getStringByColumnName(ContactsContract.CommonDataKinds.Phone.NUMBER)
         }
     }
 }
@@ -305,16 +313,7 @@ private fun getContactPhoneNumber(id: String): String {
 
 Ebben az alábbi részleteket érdemes megfigyelni:
 - Bevezettünk egy saját `performQuery` függvényt, ami csupán továbbhív a `ContentResolver` már meglévő `query` függvényébe a neki átadott paraméterekkel. Rendelkezik viszont default paraméter értékekkel, hogy ne kelljen sok, nehezen átlátható `null`-t átadnunk a meghívásakor, valamint mivel ez a függvény Kotlinban van írva, ezért meg tudjuk hívni elnevezett paraméterekkel, ami javítja a kód olvashatóságát.
-- A `getContacts` függvényben a `while` első sorában láthatjuk azt a megoldást a `Cursor`-ból való adat kiolvasásra, amit a SQLite laboron már használtunk. Elkérjük az API-tól az adott nevű oszlop indexét, és utána erről az indexről olvasunk ki egy `String` értéket. Ez körülményes, és főleg nehezen olvasható.
-- A többi hasonló hívást egyszerűbben tesszük meg ugyanezen függvény következő soraiban: itt a `Cursor`-okon hívott `getString(columnName: String)` függvény egy *extension function*, ami az *Android KTX* libraryben található, és rögtön az oszlop neve alapján olvashatunk ki adatokat vele, nem kell az indexekkel foglalkoznunk. Hogy ez meghívható legyen, vegyük fel az *Android KTX* libraryt függőségként a `build.gradle` fájlban:
-
-```groovy
-dependencies {
-    implementation 'androidx.core:core-ktx:0.3'
-}
-```
-
-Ez után ne felejtsük importálni is a `getString` függvényt.
+- A `getContacts` függvényben a `while` első sorában láthatjuk azt a megoldást a `Cursor`-ból való adat kiolvasásra, amit a SQLite laboron már használtunk.
 
 A `ContactsActivity` `onCreate` függvényében írjuk meg a `RecyclerView` inicializálását:
 
@@ -368,7 +367,7 @@ rvContacts.adapter = contactsAdapter
 contactsAdapter.setContacts(getAllContacts())
 ```
 
-Ezt Android Studio-ban legegyszerűbben a kiemelni kívánt kód kijelölésével, majd a *CTRL+ALT+M* billentyűkombinációval tudjuk megtenni. Ezzel a következő függvény kapjuk:
+Ezt Android Studio-ban legegyszerűbben a kiemelni kívánt kód kijelölésével, majd a <kbd>Ctrl+Alt+M</kbd> billentyűkombinációval tudjuk megtenni. Ezzel a következő függvény kapjuk:
 
 ```kotlin
 private fun loadContacts() {
