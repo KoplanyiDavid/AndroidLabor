@@ -1,4 +1,4 @@
-# Labor 11 - Futásidejű engedélyek
+# Futásidejű engedélyek
 
 ## Bevezető
 

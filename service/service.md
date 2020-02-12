@@ -1,4 +1,4 @@
-# Labor 6 - Service, Location
+# Service, Location
 
 ### Felkészülés a laborra
 

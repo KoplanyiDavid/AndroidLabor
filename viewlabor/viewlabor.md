@@ -1,4 +1,4 @@
-# Labor 2 - Nézetek
+# Nézetek
 
 A laboron egy regisztrációs nézetet készítünk el, melyben számos egyedi `View` található. Ezek az egyedi nézetek az előző laborral ellentétben nem a `View` ősosztályból származnak le, hanem meglévő, komplexebb `View` elemeket bővítenek ki.
 

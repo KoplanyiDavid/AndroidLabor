@@ -1,4 +1,4 @@
-# Labor 1 - Egyszerű felhasználói felület több Activity segítségével (TicTacToe)
+# Egyszerű felhasználói felület több Activity segítségével (TicTacToe)
 
 ## Bevezetés
 

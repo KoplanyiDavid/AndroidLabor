@@ -1,4 +1,4 @@
-# 3. Labor - Todo Alkalmazás
+# Todo Alkalmazás
 
 A labor célja, hogy bemutassa, hogyan lehet ún. Master/Detail nézetet tartalmazó alkalmazást készíteni, kiemelve a `Fragment`-eket és az erőforrásminősítők használatát.
 

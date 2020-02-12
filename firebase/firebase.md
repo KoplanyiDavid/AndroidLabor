@@ -1,4 +1,4 @@
-# Labor 12 - Firebase
+# Firebase
 
 ## Bevezető
 

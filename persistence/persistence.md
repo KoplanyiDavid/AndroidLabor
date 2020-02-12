@@ -1,4 +1,4 @@
-# Labor 5 - Perzisztencia
+# Perzisztencia
 
 ## Felkészülés a laborra
 

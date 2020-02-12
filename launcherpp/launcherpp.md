@@ -1,4 +1,4 @@
-# Labor 13 - Launcher++
+# Launcher++
 
 ## Bevezető
 

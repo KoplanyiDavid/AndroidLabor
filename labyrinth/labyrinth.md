@@ -1,4 +1,4 @@
-# Labor 7 - Hálózatkezelés
+# Hálózatkezelés
 
 ## Bevezetés
 

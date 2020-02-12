@@ -1,4 +1,4 @@
-# Labor 9 - UX alapok
+# UX alapok
 
 
 ## Bevezetés

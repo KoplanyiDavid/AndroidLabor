@@ -1,4 +1,4 @@
-# Labor 10 - Játékfejlesztés
+# Játékfejlesztés
 
 ## Bevezető
 

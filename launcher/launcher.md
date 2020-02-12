@@ -1,4 +1,4 @@
-# Labor 4 - Launcher
+# Launcher
 
 A labor során egy úgynevezett *Launcher*, avagy *Home Screen* alkalmazást fogunk készíteni.
 

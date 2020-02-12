@@ -1,4 +1,4 @@
-# Labor 8 - Galéria
+# Hálózatkezelés++ - Galéria
 
 
 ## Bevezetés
