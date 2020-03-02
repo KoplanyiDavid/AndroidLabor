@@ -4,10 +4,10 @@ A labor célja, hogy bemutassa, hogyan lehet ún. Master/Detail nézetet tartalm
 
 Első lépésként indítsuk el az Android Studio-t, majd:
 
-1. Hozzunk létre egy új projektet, válasszuk az *Add No Activity* lehetőséget.
+1. Hozzunk létre egy új projektet, válasszuk az *No Activity* lehetőséget.
 2. A projekt neve legyen `Todo`, a kezdő package pedig `hu.bme.aut.android.todo`.
 3. Nyelvnek válasszuk a *Kotlin*-t.
-4. A minimum API szint legyen 19 (Android 4.4).
+4. A minimum API szint legyen 21 (Android 5.0).
 5. Az *instant app* támogatást NE pipáljuk be, az *AndroidX* használata maradjon bepipálva.
 
 <p align="center">
@@ -26,7 +26,7 @@ Laborvezetővel elemezzék a generált alkalmazás működését, próbálják k
 
 Ezután kódból az `Activity`-ben megpróbálunk referenciát szerezni a második panelre, és ha sikerül, akkor tudjuk hogy tableten vagyunk, ha nem, akkor mobilon. Az első panel tartalma egy `RecyclerView`, a másodiké pedig egy sima `Fragment` a lista egy elemének megjelenítésére. Ha mobilon vagyunk, akkor a listaelemre kattintva új `Activity`-be töltjük a részletező `Fragment`-et, míg tableten egyszerűen betöltjük a jobb oldali panelbe.
 
-*Tipp: Az egyszerűbb teszteléshez keresse ki a tablet mérethez tartozó (`layout-w900dp`) felületleírót (`todo_list.xml`), majd másolja a `layout-land` mappába (hozza létre a mappát!). Ezáltal a mobiltelefon álló orientációjában egy-, míg fektetve kétpaneles viselkedést kapunk.*
+*Tipp: Az egyszerűbb teszteléshez keresse ki a tablet mérethez tartozó (`layout-w900dp`) felületleírót (`todo_list.xml`), majd másolja a `layout-land` mappába (hozza létre a mappát a `res` mappában!). Ezáltal a mobiltelefon álló orientációjában egy-, míg fektetve kétpaneles viselkedést kapunk.*
 
 ## Átalakítás Todo alkalmazássá
 
@@ -251,7 +251,7 @@ Ez az adapter hivatkozik egy `row_todo.xml`-re. Hozzuk létre ezt a fájlt a `re
 </LinearLayout>
 ```
 
-Szükségünk van még a nézetekhez az alábbi három képre. Ezek különböző méreteinek legenerálásához használjuk az [Asset Studio](https://romannurik.github.io/AndroidAssetStudio/index.html)-t (azon belül a *Generic icon generator*-t), majd a kapott mappákat másoljuk a `res` mappába.
+Szükségünk van még a nézetekhez az alábbi három képre. Ezek különböző méreteinek legenerálásához használjuk az [Asset Studio](https://romannurik.github.io/AndroidAssetStudio/index.html)-t (azon belül a *Generic icon generator*-t), forrásként válasszuk ki az alábbi képeket, majd a letöltött zip fájlokat csomagoljuk ki a `res` mappába.
 
 <img src="./assets/high.png" align="middle" width="50">
 <img src="./assets/medium.png" align="middle" width="50">
@@ -325,7 +325,7 @@ override fun onItemLongClick(position: Int, view: View): Boolean {
 }
 ```
 
-Az `onItemLongClick`-ben hivatkozunk egy menü erőforrásra, ami tartalmazza a lehetséges menüpontokat. Hozzuk létre a `menu_todo.xml` fájlt a `menu` mappában (amit létre kell hoznunk).
+Az `onItemLongClick`-ben hivatkozunk egy menü erőforrásra, ami tartalmazza a lehetséges menüpontokat. Hozzuk létre a `menu_todo.xml` fájlt a `menu` mappában (amit létre kell hoznunk a `res` mappán belül).
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -388,7 +388,7 @@ class TodoCreateFragment : DialogFragment() {
 
     private lateinit var listener: TodoCreatedListener
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         try {
@@ -404,7 +404,7 @@ class TodoCreateFragment : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_create, container, false)
-        dialog.setTitle(R.string.itemCreateTodo)
+        dialog?.setTitle(R.string.itemCreateTodo)
         return view
     }
 
@@ -613,7 +613,7 @@ class DatePickerDialogFragment : DialogFragment() {
         )
     }
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         try {
