@@ -120,7 +120,7 @@ companion object {
 
 A két `Activity` és a jobb oldali panel már fel van készítve az új működésre. A `TodoListActivity` el tudja dönteni, hogy egy vagy két panel jelenik meg, listenerként pedig majd betölti a `TodoDetailActivity`-t vagy a jobb oldali `Fragment`-et.
 
-Már csak egy dolog van hátra: ahhoz, hogy a Todo-ink megfelelően jelenjenek meg a listában, módosítanunk kell a sablonban létrejött `SimpleItemRecyclerViewAdapter`-t. Először is töröljük a `TodoListActivity`-ből az `SimpleItemRecyclerViewAdapter` belső osztályt és hozzunk létre a `SimpleItemRecyclerViewAdapter` osztályt az `adapter` package-ben. Ennek tartalma legyen a következő:
+Már csak egy dolog van hátra: ahhoz, hogy a Todo-ink megfelelően jelenjenek meg a listában, módosítanunk kell a sablonban létrejött `SimpleItemRecyclerViewAdapter`-t. Először is töröljük a `TodoListActivity`-ből az `SimpleItemRecyclerViewAdapter` belső osztályt, majd hozzunk létre az `adapter` package-et, ahova adjuk hozzá a `SimpleItemRecyclerViewAdapter` osztályt. Ennek tartalma legyen a következő:
 
 ```kotlin
 class SimpleItemRecyclerViewAdapter : RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
