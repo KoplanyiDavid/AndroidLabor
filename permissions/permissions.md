@@ -745,7 +745,7 @@ buttonCall.setOnClickListener {
 
 Teszteljük a hívás funkciót 6.0+/API level 23+ emulátoron!
 
-<img src="./assets/contacts.png" width="400" align="middle">
+<img src="./assets/singlecontact.png" width="400" align="middle">
 
 ## Önálló feladatok
 
