@@ -342,16 +342,16 @@ Egyelőre nem valósítottunk meg futásidejű jogosulságkezelést a kódban, e
 Próbáljuk ki az alkalmazást 6.0/API 23 előtti verzióval rendelkező eszközön  vagy emulátoron!
 Amennyiben az eszközön nincsenek névjegyek, adjunk hozzá legalább egyet telefonszámmal ellátva a beépített névjegykezelő alkalmazásban.
 
-<img src="./assets/app.png" width="400" align="middle">
+<img src="./assets/contacts.png" width="400" align="middle">
 
 Android 6.0 vagy magasabb verzión futtatva az alkalmazást hibát kapunk, hiszen a névjegyek beolvasásához szükséges engedély a *dangerous* kategóriába tartozik, ezt külön kell kezelni kód szinten (6.0 felett **ÉS** targetSdk 23+ esetén).
 
 A kapott hiba az alábbihoz hasonló:
 
 ```text
-java.lang.SecurityException: Permission Denial: opening provider 
-com.android.providers.contacts.ContactsProvider2 from ProcessRecord{...} (pid=14701, uid=10135)
-requires android.permission.READ_CALENDAR or android.permission.WRITE_CALENDAR
+java.lang.SecurityException: Permission Denial: opening provider
+com.android.providers.contacts.ContactsProvider2 from ProcessRecord{...} (pid=13547, uid=10141)
+requires android.permission.READ_CONTACTS or android.permission.WRITE_CONTACTS
 ```
 
 ## Futásidejű jogosultságkezelés megvalósítása
@@ -510,129 +510,246 @@ Próbáljuk ki az alkalmazást 6.0+/API level 23+ eszközön! Figyeljük meg a m
 
 ## Telefonszám hívása
 
+Bővítsük a funkcionalitást úgy, hogy az alkalmazás egy adott névjegy elemre kattintás hatására megnyisson egy új Activity-t, ahonnan hívást tudunk indítani a névjegyben szereplő telefonszámra!
+
+Először is a `loadContacts` függvény végén adjuk meg a `ContactsActivity`-t listenerként, hogy értesülni tudjunk az elem kiválasztásáról:
+
+```kotlin
+contactsAdapter.itemClickListener = this
+```
+
+Hozzunk létre egy új *Empty Activityt* `SingleContactActivity` néven! Ide majd át kell juttatnunk a névjegyben szereplő nevet és telefonszámot. Erre számos lehetőségünk nyílik, mi  most egyszerűen extraként az intent mellé fogjuk becsomagolni ezeket.
+
+Módosítsuk úgy a `ContactsActivity`-t, hogy implementálja a `ContactsAdapter.ContactItemClickListener` interface-t, ezen tud szólni az adapter, hogy a lista valamelyik elemét kiválasztották:
+
+```kotlin
+class ContactsActivity : AppCompatActivity(), ContactsAdapter.ContactItemClickListener {...}
+```
+
+Ez után valósítsuk meg a `ContactsActivity`-ben az `OnItemClick` függvényt.
+
+
+```kotlin
+override fun onItemClick(contact: Contact) {
+    val intent = Intent(this, SingleContactActivity::class.java)
+    intent.putExtra(Contact.KEY_NAME, contact.name)
+    intent.putExtra(Contact.KEY_NUMBER, contact.number)
+    startActivity(intent)
+}
+```
+
+Vegyük fel a két használt kulcsot a Contacts osztályba!
+
+```kotlin
+class Contact(
+    val name: String,
+    val number: String) {
+
+    companion object{
+        const val KEY_NAME = "KEY_NAME"
+        const val KEY_NUMBER = "KEY_NUMBER"
+    }
+}
+```
+
+Készítsük el a `SingleContactActivity` felületét! Ez tartalmazni fog egy képet, a kontakt nevét valamint a kontakt telefonszámát. Alul található két gomb a híváshoz és az SMS küldéshez. Az `activity_single_contact.xml` tartalma:
+
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+    android:layout_marginVertical="@dimen/activity_vertical_margin"
+    tools:context=".SingleContactActivity">
+
+    <ImageView
+        android:id="@+id/ivSingleContactImage"
+        android:layout_width="wrap_content"
+        android:layout_marginVertical="40dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_contact_phone_black_48dp" />
+
+    <TextView
+        android:id="@+id/tvContactName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ivSingleContactImage"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:text="@string/contact_name_placeholder"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/tvContactNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvContactName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:text="@string/contact_number_placeholder"
+        android:textSize="24sp" />
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/buttonCall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_weight="1"
+            android:text="@string/buttonCall" />
+
+        <Button
+            android:id="@+id/buttonSendSMS"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_weight="1"
+            android:text="@string/buttonSendSMS" />
+    </LinearLayout>
+
+</RelativeLayout>
+```
+
+Vegyük fel a szükséges erőforrásokat is:
+
+```xml
+    <string name="buttonCall">Call</string>
+    <string name="buttonSendSMS">SMS</string>
+```
+
+A `SingleContactActivity` `OnCreate` függvényében be kell állítanunk a nevet és a telefonszámot. Ezt az intentből tudjuk kinyerni a *getStringExtra* függvénnyel:
+
+```kotlin
+class SingleContactActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_single_contact)
+
+        tvContactName.text = intent.getStringExtra(Contact.KEY_NAME)
+            ?: resources.getString(R.string.contact_name_placeholder)
+        tvContactNumber.text = intent.getStringExtra(Contact.KEY_NUMBER)
+            ?: resources.getString(R.string.contact_name_placeholder)
+    }
+}
+```
+
+### Futásidejű jogosultságkezelés
+
 Ahhoz, hogy az alkalmazásunk hívásokat indíthasson, fel kell venni a következő engedélyt az `AndroidManifest.xml` fájlba a `READ_CONTACTS`-hez hasonlóan:
 
 ```xml
 <uses-permission android:name="android.permission.CALL_PHONE" />
 ```
 
-Ez az engedély is a *dangerous* kategóriába tartozik, ezért a telefonhívás indítását is az előzőekben leírtaknak megfelelően kell kezelnünk. Bővítsük a funkcionalitást úgy, hogy az alkalmazás egy adott névjegy elemre kattintás hatására hívást indítson a névjegyben szereplő telefonszámra!
+Ez az engedély is a *dangerous* kategóriába tartozik, ezért a telefonhívás indítását is futásidőben kell kezelnünk. Az imént áttekintettük a futásidejű engedélykérés és kezelés alapjait, azt hogy hogyan lehet ezt "kézzel" megoldani. A következőkben viszont bemutatjuk a [PermissionsDispatcher](https://github.com/permissions-dispatcher/PermissionsDispatcher) könyvtárat, ami annotációkkal könnyíti meg az engedélyek kezelését.
 
-Módosítsuk úgy a `ContactsActivity`-t, hogy implementálja a `ContactsAdapter.ContactItemClickListener` interface-t, ezen tud szólni az adapter, hogy a lista valamelyik elemét kiválasztották:
+Ebben a következő annotációk érhetőek el (a vastaggal szedettek kötelezők):
+* Először is el kell látnunk a **@RuntimePermissions** annotációval az Activityt vagy Fragmentet, hogy regisztrálni tudjuk az engedély kezeléséhez.
+* Azt a függvényt, aminek a működéséhez szükség van az engedélyre, el kell látnunk a **@NeedsPermission** annotációval.
+* Azt a függvényt, ami a szükséges magyarázatot jeleníti meg, el kell látnunk az *@OnShowRationale* annotációval
+* Azt a függvényt, ami az engedély megtagadását kezeli le, el kell látnunk az *@OnPermissionDenied* annotációval
+* Azt a függvényt, ami az engedély megadását, és a választás megjegyzését kezeli le, el kell látnunk az *@OnNeverAskAgain* annotációval
 
-```kotlin
-class ContactsActivity : AppCompatActivity(), ContactsAdapter.ContactItemClickListener {
-    ...
-    override fun onItemClick(contact: Contact) {
-        handleCallPermission(contact.number)
-    }
-    ...
+Kezdés képpen, vegyük fel a szükséges függőségeket a  modul szintű `build.gradle` fájlban. Először is szükségünk lesz a `PermissionsDispatcher` könyvtára, illetve az annotációk feldolgozásához a `PermissionsDispatcher processorra`. Ezt a kapt kulcsszóval tudjuk felvenni a függőségeink közé: 
+
+```groovy
+dependencies {
+    implementation "org.permissionsdispatcher:permissionsdispatcher:4.6.0"
+    kapt "org.permissionsdispatcher:permissionsdispatcher-processor:4.6.0"
 }
 ```
 
-A `loadContacts` függvény végén adjuk meg a `ContactsActivity`-t listenerként:
+Ahhoz, hogy a kapt kulcsszó is működjön és a gradle felismerje, engedélyeznünk kell a Kotlin Annotation Processing Toolt. Ezt szintén a  modul szintű `build.gradle` fájlban tudjuk bekapcsolni. Illesszük be a tetejére a következőt:
 
-```kotlin
-contactsAdapter.itemClickListener = this
+```groovy
+apply plugin: 'kotlin-kapt'
 ```
 
-Adjuk hozzá az alábbi propertyt és függvényeket a `ContactsActivity` osztályhoz:
+Ezek után már használatra kész a `PermissionsDispatcher`. A futásidejű engedélyeket a `SingleContactActivity`-ben szeretnénk használni, ezért ezt először is lássuk el az osztályt a *@RuntimePermissions* annotációval.
+
+A telefonhívást a *callPhone* függvényünk fogja végezni. Ebben összerakjuk az intentet a híváshoz, majd el is indítjuk:
 
 ```kotlin
-private var lastPhoneNumber: String? = null
-
-private fun handleCallPermission(phoneNumber: String) {
-    lastPhoneNumber = phoneNumber
-    if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-        // Should we show an explanation?
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CALL_PHONE)) {
-            // Show an explanation to the user *asynchronously* -- don't block
-            // this thread waiting for the user's response! After the user
-            // sees the explanation, try again to request the permission.
-
-            showRationaleDialog(
-                    explanation = R.string.call_permission_explanation,
-                    onPositiveButton = this::requestCallPermission
-            )
-
-        } else {
-            // No explanation needed, we can request the permission.
-            requestCallPermission()
-        }
-    } else {
-        callPhoneNumber(phoneNumber)
-    }
-}
-
-private fun requestCallPermission() {
-    ActivityCompat.requestPermissions(
-            this,
-            arrayOf(CALL_PHONE),
-            PERMISSIONS_REQUEST_PHONE_CALL
-    )
-}
-
-@SuppressLint("MissingPermission")
-private fun callPhoneNumber(phoneNumber: String) {
+@NeedsPermission(Manifest.permission.CALL_PHONE)
+fun callPhoneNumber(phoneNumber: String) {
     val callIntent = Intent(Intent.ACTION_CALL)
     callIntent.data = Uri.parse("tel:$phoneNumber")
     startActivity(callIntent)
 }
-
-private fun callLastPhoneNumber() {
-    lastPhoneNumber?.let { phoneNumber ->
-        callPhoneNumber(phoneNumber)
-    }
-}
 ```
 
-A `strings.xml`-ben vegyük fel a hiányzó szöveges erőforrást:
-
-```xml
-<string name="call_permission_explanation">The application needs permission to make phone calls. It will not initiate calls without explicit user intention.</string>
-```
-
-A `callPhoneNumber` függvény fogja indítani a hívást, a `handleCallPermission` függvény pedig az engedélykérést kezeli a névjegyeknél látottakkal megegyező módon. Hozzuk létre a `PERMISSIONS_REQUEST_PHONE_CALL` konstanst a `ContactsActivity` `companion object`-jében a korábban létrehozott `PERMISSIONS_REQUEST_READ_CONTACTS`-tól eltérő értékkel, például.
+Mivel a hívásindítás *dangerous* engedély, a fordító jelzi is nekünk, lehetséges hogy a felhasználó nem adja meg az engedélyt, ekkor hibát kaphatunk. Ezért használjuk a *@NeedsPermission* annotációt. Ezzel a `PermissionsDispatcher` fordítás közben legenerálja nekünk a szükséges ellenőrzéseket. Már csak a lehetséges válaszokra kell felkészülnünk. Lehetséges, hogy a felhasználó megtagadja az engedélyt. Ekkor az *@OnPermissionDenied* annotációval ellátott függvény hívódik meg. Mi jelen esetben csak egy Toast-ot dobunk:
 
 ```kotlin
-companion object {
-    private const val PERMISSIONS_REQUEST_READ_CONTACTS = 100
-    private const val PERMISSIONS_REQUEST_PHONE_CALL = 101
+@OnPermissionDenied(Manifest.permission.CALL_PHONE)
+fun onCallDenied() {
+    Toast.makeText(this, getString(R.string.permission_denied_call), Toast.LENGTH_SHORT).show()
 }
 ```
 
-Az engedélykérés eredményét ebben az esetben is a `ContactsActivity` fogja kezelni. Módosítsuk az `onRequestPermissionsResult` függvényt:
+A string erőforrás értékének adjuk meg a "Call permission denied" szöveget.
+
+Egy másik lehetőség, hogy a felhasználó egyszer már megtagadta az engedélyt, ekkor mutatnunk kell egy magyarázatot. Ekkor az *@OnShowRationale* annotációval ellátott függvény hívódik meg. Az előzekhez hasonlóan itt is egy *AlertDialog*-ot fogunk feldobni.
+
+```kotlin
+@OnShowRationale(Manifest.permission.CALL_PHONE)
+fun showRationaleForCall(request: PermissionRequest) {
+    val alertDialog = AlertDialog.Builder(this)
+        .setTitle(title)
+        .setMessage(R.string.call_permission_explanation)
+        .setCancelable(false)
+        .setPositiveButton(R.string.proceed) { dialog, id -> request.proceed() }
+        .setNegativeButton(R.string.exit) { dialog, id -> request.cancel() }
+        .create()
+    alertDialog.show()
+    }
+```
+
+A *showRationaleForCall* függvényünk bemenő paraméterként megkapja az engedélykérést. Így mind a pozitív, mind a negatív gombokra be tudjuk állítani ennek az eseménykezelését. Ehhez itt is lambda kifejezéseket használunk.
+
+A string erőforrás értékének adjuk meg a "The application needs permission to make phone calls. It will not initiate calls without explicit user intention." szöveget.
+
+Már csak egy lehetsőség maradt: mi van akkor, ha a felhasználó megadta az engedélyt. Korábban ezt az *onRequestPermissionsResult* függvénnyel kezeltük le. Tegyük most is ezt. Azonban a helyett, hogy megírnánk kézzel a lehetséges visszatéréseket, bízzuk ezt is a `PermissionsDispatcher`re:
 
 ```kotlin
 override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-    when (requestCode) {
-        PERMISSIONS_REQUEST_READ_CONTACTS -> {
-            // If request is cancelled, the result arrays are empty.
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission was granted! Do the contacts-related task you need to do.
-                loadContacts()
-            } else {
-                // Permission denied! Disable the functionality that depends on this permission.
-                // In this example, this block is intentionally empty and serves only as a demonstration for
-                // what can be done here.
-            }
-            return
-        }
-        PERMISSIONS_REQUEST_PHONE_CALL -> {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                callLastPhoneNumber()
-            }
-        }
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    // NOTE: delegate the permission handling to generated method
+    onRequestPermissionsResult(requestCode, grantResults)
     }
+```
+
+Itt a kétparaméteres *onRequestPermissionsResult* függvény egy generált függvény, ami továbbadja a kezelést.
+
+Ahhoz, hogy működjön a hívásunk, már csak egy dolgunk van. El kell készítenünk a hívás gomb eseménykezelőjét. Itt is egy generált függvényt fogunk hívni a telefonhíváshoz. a *callPhoneNumber* függvényünkből a `PermissionsDispatcher` a *callPhoneNumberWithPermissionCheck* függvényt generálja, ami elvégzi nekünk az engedélykérést. Tehát az eseménykezelő az *onCreate* végére:
+
+```kotlin
+...
+buttonCall.setOnClickListener {
+    callPhoneNumberWithPermissionCheck(tvContactNumber.text.toString())
 }
 ```
 
 Teszteljük a hívás funkciót 6.0+/API level 23+ emulátoron!
 
+<img src="./assets/singlecontact.png" width="400" align="middle">
+
 ## Önálló feladatok
 
-Valósítsa meg az SMS küldés funkciót, például hosszú érintés eseménykezelő segítségével. 
+Valósítsa meg az SMS küldés funkciót! 
 
 Az ehhez szükséges engedély:
 
