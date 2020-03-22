@@ -4,7 +4,8 @@
 
 Android 6.0 (API level 23, Marshmallow) verziótól kezdve a felhasználó futásidőben adhatja meg, vagy utasíthatja el az alkalmazás által kért engedélyeket, és nem az alkalmazás telepítésekor vagy frissítésekor. Dönthet úgy, hogy bizonyos engedélyeket nem ad meg egy alkalmazásnak, így nagyobb fokú irányítás kerül a kezébe. Az alkalmazásengedélyeket később bármikor módosíthatja a rendszerszintű alkalmazás beállításoknál.
 
-Az engedélyek két kategóriába vannak sorolva: *normal* és *dangerous*
+Az engedélyek két kategóriába vannak sorolva: *normal* és *dangerous*.
+
 A *normal* kategóriába tartozó engedélyek nem jelentenek közvetlen kockázatot a felhasználó személyes adataira, ezeket az engedélyeket a rendszer automatikusan megadja az alkalmazásnak, ha szüksége van rá.
 
 A *dangerous* kategóriába tartozó engedélyek lehetőséget adhatnak az alkalmazásnak a felhasználó személyes adataihoz való hozzáféréshez. Ebben az esetben a felhasználónak kell megadni az engedélyt az alkalmazás számára. Ennek a közvetlen következménye az, hogy az alkalmazásokat fel kell készíteni arra az esetre, ha nincs megadva egy adott funkció működéséhez elengedhetetlen engedély.
@@ -313,7 +314,7 @@ private fun getContactPhoneNumber(id: String): String {
 
 Ebben az alábbi részleteket érdemes megfigyelni:
 - Bevezettünk egy saját `performQuery` függvényt, ami csupán továbbhív a `ContentResolver` már meglévő `query` függvényébe a neki átadott paraméterekkel. Rendelkezik viszont default paraméter értékekkel, hogy ne kelljen sok, nehezen átlátható `null`-t átadnunk a meghívásakor, valamint mivel ez a függvény Kotlinban van írva, ezért meg tudjuk hívni elnevezett paraméterekkel, ami javítja a kód olvashatóságát.
-- A `getContacts` függvényben a `while` első sorában láthatjuk azt a megoldást a `Cursor`-ból való adat kiolvasásra, amit a SQLite laboron már használtunk.
+- A `getContacts` függvényben a `while` első sorában láthatunk egy megoldást a `Cursor`-ból való adat kiolvasásra. Ezzel a művelettel a perzisztens adattároláson belül az SQLite  adatbázisoknál találkozhattok később.
 
 A `ContactsActivity` `onCreate` függvényében írjuk meg a `RecyclerView` inicializálását:
 
@@ -659,9 +660,9 @@ Ez az engedély is a *dangerous* kategóriába tartozik, ezért a telefonhívás
 Ebben a következő annotációk érhetőek el (a vastaggal szedettek kötelezők):
 * Először is el kell látnunk a **@RuntimePermissions** annotációval az Activityt vagy Fragmentet, hogy regisztrálni tudjuk az engedély kezeléséhez.
 * Azt a függvényt, aminek a működéséhez szükség van az engedélyre, el kell látnunk a **@NeedsPermission** annotációval.
-* Azt a függvényt, ami a szükséges magyarázatot jeleníti meg, el kell látnunk az *@OnShowRationale* annotációval
-* Azt a függvényt, ami az engedély megtagadását kezeli le, el kell látnunk az *@OnPermissionDenied* annotációval
-* Azt a függvényt, ami az engedély megadását, és a választás megjegyzését kezeli le, el kell látnunk az *@OnNeverAskAgain* annotációval
+* Azt a függvényt, ami a szükséges magyarázatot jeleníti meg, el kell látnunk az *@OnShowRationale* annotációval.
+* Azt a függvényt, ami az engedély megtagadását kezeli le, el kell látnunk az *@OnPermissionDenied* annotációval.
+* Azt a függvényt, ami az engedély megadását, és a választás megjegyzését kezeli le, el kell látnunk az *@OnNeverAskAgain* annotációval.
 
 Kezdés képpen, vegyük fel a szükséges függőségeket a  modul szintű `build.gradle` fájlban. Először is szükségünk lesz a `PermissionsDispatcher` könyvtára, illetve az annotációk feldolgozásához a `PermissionsDispatcher processorra`. Ezt a kapt kulcsszóval tudjuk felvenni a függőségeink közé: 
 
@@ -745,7 +746,7 @@ buttonCall.setOnClickListener {
 
 Teszteljük a hívás funkciót 6.0+/API level 23+ emulátoron!
 
-<img src="./assets/singlecontact.png" width="400" align="middle">
+<img src="./assets/contacts.png" width="400" align="middle">
 
 ## Önálló feladatok
 
@@ -756,3 +757,4 @@ Az ehhez szükséges engedély:
 ```xml
 <uses-permission android:name="android.permission.SEND_SMS"/>
 ```
+
