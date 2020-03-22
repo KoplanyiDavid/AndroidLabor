@@ -33,7 +33,7 @@ A labor során nagyobb kódrészek kerülnek megírásra, ami miatt elnézést k
 Első lépésként létre kell hozni egy Firebase projektet a Firebase admin felületén (Firebase console), majd egy Android Studio projektet és a kettőt össze kell kötni:
 - Navigáljunk a Firebase console felületére: [https://console.firebase.google.com/](https://console.firebase.google.com/) !
 - Jelentkezzünk be!
-- Hozzunk létre egy új projektet az *Add project* elemet választva!
+- Hozzunk létre egy új projektet a *Create project* elemet választva!
 
 <p align="center">
 <img src="./assets/firebase_create_project_1.png">
@@ -89,13 +89,13 @@ Sajnos a Firebase plugin nincs rendszeresen frissítve, és így majdnem mindig 
 Cseréljük le a projekt szintű `build.gradle` fájlban a `google-services`-t az alábbi verzióra:
 
 ```groovy
-classpath 'com.google.gms:google-services:4.3.2'
+classpath 'com.google.gms:google-services:4.3.3'
 ```
 
 Valamint a modul szintű `build.gradle`-ben a `firebase-auth` verziót a következőre:
 
 ```groovy
-implementation 'com.google.firebase:firebase-auth:19.0.0'
+implementation 'com.google.firebase:firebase-auth:19.3.0'
 ```
 
 A generált projektváz többi általános függősége (pl. appcompat és ktx-core könyvtárak) is elavult lehet, ezt az Android Studio jelzi is sötétsárga háttérrel. Ezekre ráállva a kurzorral az Alt-Enter gyorsbillenytűvel kiválaszthatjuk ezeknek a frissítését.
@@ -364,10 +364,10 @@ az új függőségek:
 
 ```groovy
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.material:material:1.0.0'
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.1.0'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.2.1'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.2.1'
 ```
 
 A navigation libraryknek csak a *-ktx* utótagú verziója legyen megadva, különben elszáll a build, mert azonos
@@ -403,7 +403,7 @@ Adjuk hozzá a projekthez a *Firebase Realtime Database* támogatást (itt is fo
 közben belegenerált függőségeket is, amelyeket a Navigation Drawer típusú Activity létrehozása változz ki.
 
 ```groovy
-    implementation 'com.google.firebase:firebase-database:19.2.0'
+    implementation 'com.google.firebase:firebase-database:19.2.1'
 ```
 
 Kapcsoljuk be a *Realtime Database*-t a *Firebase console*-on is (figyeljünk rá, hogy ne a *Cloud Firestore*-t válasszuk, ez egy újabb megoldás, komolyabb funkcionalitást nyújt, amire jelenleg nicns szükségünk). Az adatbázist *test mode*-ban fogjuk használni, így egyelőre publikusan írható/olvasható lesz, de cserébe nem kell konfigurálnunk a hozzáférés-szabályozást. Ezt természetesen később mindenképp meg kellene tenni egy éles projektben.
@@ -715,7 +715,7 @@ Próbáljuk ki az alkalmazás működését! A lista jelenleg még üres lesz, h
 A következő lépés az üzenetek írása, melynek hatására már tartalom kerülhet a listába. Ehhez vegyük fel a *Firebase Storage* függőséget, amit a képek feltöltéséhez fogunk használni:
 
 ```groovy
-implementation 'com.google.firebase:firebase-storage:19.1.0'
+implementation 'com.google.firebase:firebase-storage:19.1.1'
 ```
 
 A *Firebase console*-on is inicializáljuk a *Storage* funkciót a megfelelő menüben.
@@ -899,7 +899,7 @@ Vizsgálja meg az elkészült alkalmazást, az üzenetek létrehozását és az 
 Adjuk hozzá a projektünkhöz a `firebase-messaging` függőséget:
 
 ```groovy
-implementation 'com.google.firebase:firebase-messaging:20.0.0'
+implementation 'com.google.firebase:firebase-messaging:20.1.3'
 ```
 
 Csupán ennyi elegendő a push alapvető működéséhez, ha így újrafordítjuk az alkalmazást, a Firebase felületéről vagy API-jával küldött push üzeneteket automatikusan megkapják a mobil kliensek és egy *Notification*-ben megjelenítik.
@@ -937,11 +937,11 @@ buildscript {
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.1'
+        classpath 'com.android.tools.build:gradle:3.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.2'
+        classpath 'com.google.gms:google-services:4.3.3'
         classpath 'io.fabric.tools:gradle:1.31.1'
-        classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.1.0'
+        classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.2.1'
     }
 }
 ```
