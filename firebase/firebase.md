@@ -53,7 +53,7 @@ Sikeres projekt létrehozás után fussák át a laborvezetővel közösen a Fir
 - Database -> Rules.
 
 Hozzunk létre egy új projektet Android Studioban az *Empty Activity* sablont választva `BMEForum` néven,
-a package name legyen `hu.bme.aut.android.bmeforumNEPTUN_KOD`. Fontos hogy a Neptun kód előtt ne legyen pont, mert ez gondot okozhat.
+a package name legyen `hu.bme.aut.android.bmeforumNEPTUN_KOD`, a *minimum API 21-es.* Fontos hogy a Neptun kód előtt ne legyen pont, mert ez gondot okozhat.
 
 A létrejövő `MainActivity` lesz a login formunk, mivel elsőként a regisztrációs és bejelentkező nézetet fogjuk megvalósítani. Az egyszerűség kedvéért ugyanazt a felületet fogjuk használni regisztráció és bejelentkezés céljából.
 
