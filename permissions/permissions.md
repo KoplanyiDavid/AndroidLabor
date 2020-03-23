@@ -243,7 +243,7 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>(
 }
 ```
 
-Hozzunk létre egy `CursorExtensions` Kotlin fájlt a `util` csomagban, és definiáljuk benne az alábbi `extensions functiont`:
+Hozzunk létre egy `CursorExtensions` Kotlin fájlt a `util` csomagban, és definiáljuk benne az alábbi [extension functiont](https://kotlinlang.org/docs/reference/extensions.html#extension-functions):
 
 ```kotlin
 fun Cursor.getStringByColumnName(colName: String) = this.getString(this.getColumnIndex(colName))
