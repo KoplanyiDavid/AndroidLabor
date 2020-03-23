@@ -924,38 +924,24 @@ Természetesen lehetőség van saját push üzenet feldolgozó szolgáltatás k�
 
 ## Crashlytics
 
-A Firebase 2018 szeptemberétől a régebben a [Fabric](https://get.fabric.io/)-hez tartozó Crashlytics szolgáltatást nyújtja a *Firebase crash reporting* helyett. 
+A Firebase Console-on először navigáljunk a Crashlytics menüpontra, és kapcsoljuk be a funkciót. Válasszuk az új Firebase alkalmazás integrációját.
 
-Ennek beüzemeléséhez több változtatásra lesz szükség az alkalmazásban, mint az eddigi függőségek felvételnél. A projekt szintű `build.gradle` fájlban fel kell vennünk egy buildscript repository-t, illetve egy függőséget, amely ebből a repository-ból kerül majd letöltésre. Ezek egysoros változtatások, de az egyszerűség kedvéért itt a teljes `buildscript` blokk ezek hozzáadása után:
+Ezután a projekt szintű `build.gradle` fájlban fel kell vennünk függőségként egy plugint a `buildscript` rész `dependencies` részébe:
  
 ```groovy
-buildscript {
-    ext.kotlin_version = '1.3.50'
-    repositories {
-        google()
-        jcenter()
-        maven { url 'https://maven.fabric.io/public' }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.3'
-        classpath 'io.fabric.tools:gradle:1.31.1'
-        classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.2.1'
-    }
-}
+classpath 'com.google.firebase:firebase-crashlytics-gradle:2.0.0-beta03'
 ```
 
 Ezekkel a módosításokkal egy Gradle plugint adtunk hozzá a projektünkhöz, amit a modul szintű `build.gradle` fájl elején be kell kapcsolnunk a már meglévők után:
 
 ```groovy
-apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.crashlytics'
 ```
 
 Végül pedig szükségünk van egy egyszerű Gradle függőségre is, amit a meglévő Firebase függőségek mellé helyezhetünk, a modul szintű `build.gradle` fájlban:
 
 ```groovy
-implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
+implementation 'com.google.firebase:firebase-crashlytics:17.0.0-beta02'
 ```
 
 <p align="center">
@@ -973,7 +959,7 @@ Vegyünk fel egy új menüpontot az `activity_post_drawer.xml` fájlban definiá
 
 Végül a *Firebase console-ban* is engedélyezzük a funkciót a *Crashlytics* menüpont alatt.
 
-Próbáljuk ki saját hibajelzések készítését a menü eseménykezelőjében. A `PostsActivity` osztály `onNavigationItemSelected` metódusában kell egy új ágat felvennünk a `when` kifejezésbe, ahol egy Crashlytics függvény meghívásával szándékos crash-t okozunk:
+Próbáljuk ki saját hibajelzések készítését a menü eseménykezelőjében. A `PostsActivity` osztály `onNavigationItemSelected` metódusában kell egy új ágat felvennünk a `when` kifejezésbe, ahol egy kivételdobással szándékos crash-t okozunk:
 
 ```kotlin
 when (item.itemId) {
@@ -982,7 +968,7 @@ when (item.itemId) {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
-    R.id.nav_error -> Crashlytics.getInstance().crash()
+    R.id.nav_error -> throw RuntimeException("Test crash")
 }
 ```
 
