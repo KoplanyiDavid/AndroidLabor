@@ -26,7 +26,7 @@ A játék szabályai egyszerűek, a játékosunkat a készülékről négy gomb 
 
 Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet* szekcióban az *EmptyActivity*-t.
 
-Az alkalmazás neve legyen `NetworkLabor`, a package név legyen `hu.bme.aut.android.networklabor`, és természetesen válasszuk a Kotlin nyelvet.
+Az alkalmazás neve legyen `Labyrinth`, a package név legyen `hu.bme.aut.android.labyrinth`, és természetesen válasszuk a Kotlin nyelvet.
 
 A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk, de az AndroidX függőségeket hagyjuk bejelölve.
 
@@ -330,7 +330,7 @@ A fentiek miatt a beépített megoldások helyett egy széleskörben elterjedt, 
 Ennek használatához fel kell vennünk a következő sort az alkalmazás modul szintű `build.gradle` fájljának `dependencies` részéhez:
 
 ```kotlin
-implementation 'com.squareup.okhttp3:okhttp:4.1.1'
+implementation 'com.squareup.okhttp3:okhttp:4.4.0'
 ```
 
 Ezután a könyvtár nagyon egyszerűen használható. A `LabyrinthAPI` osztályba vegyünk fel egy propertyt egy `OkHttpClient` példány tárolására. Ezt használva készítsünk egy általános HTTP GET hívást lebonyolító függvényt.
@@ -546,7 +546,7 @@ Helyettük használhatunk eseménybuszokat, melyek gyorsabbak és egyszerűbben 
 Számos 3rd party eseménybusz megoldás van, mi a [Greenrobot EventBus](https://github.com/greenrobot/EventBus) megoldását fogjuk használni. Ehhez vegyük fel a könyvtárat a függőségek közé:
 
 ```groovy
-implementation 'org.greenrobot:eventbus:3.1.1'
+implementation 'org.greenrobot:eventbus:3.2.0'
 ```
 
 Először definiálnunk kell az eseményeinket. Hozzunk létre egy-egy külön osztályt a mozgatás és az üzenet küldés válaszának az `events` csomagban, `MoveUserResponseEvent` és `WriteMessageResponseEvent` néven. Azért szükségesek külön osztályok, mert az eseménybuszok az osztályuk alapján kézbesítik az eseményeket, és így tudjuk majd őket megkülönböztetni és külön kezelni később. Mindenkét osztály egy egysoros Kotlin osztály lesz, és `String`-ben tárolják az adott hívásra érkezett választ.
@@ -643,7 +643,10 @@ Végül próbáljuk ki az alkalmazást működés közben:
 <img src="./images/stage2.png" width="250">
 </p>
 
-## Bónusz feladat 1 - Extension function
+
+## Önálló feladatok
+
+### Feladat 1 - Extension function
 
 Cseréljük le a `LabyrinthAPI`-ban definált `encode` függvényt egy [extension function](https://kotlinlang.org/docs/reference/extensions.html#extension-functions)-re, amelyet az eddigi helyett az alábbi szintaxissal használhatunk:
 
@@ -651,7 +654,7 @@ Cseréljük le a `LabyrinthAPI`-ban definált `encode` függvényt egy [extensio
 username.encode()
 ```
 
-## Bónusz feladat 2 - Válaszidő kijelzése
+### Feladat 2 - Válaszidő kijelzése
 
 Egészítsük ki az alkalmazást úgy, hogy a felhasználói felületen megjelenítsük a szerverrel való kommunikáció során tapasztalt válaszidőt (üzenet küldése és válasz megérkezése közti idő).
 
@@ -669,7 +672,7 @@ val duration = measureTimeMillis {
 }
 ```
 
-## Bónusz feladat 3 - Hálozat elérhető-e
+### Feladat 3 - Hálozat elérhető-e
 
 Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban. Segítség: 
 
