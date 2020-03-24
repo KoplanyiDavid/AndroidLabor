@@ -262,7 +262,6 @@ Ezt követően készítsük el a `Fragment`-hez tartozó layout fájlt, mely az 
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/scroller"
@@ -653,37 +652,37 @@ private val locationReceiver = object : BroadcastReceiver() {
 Ezt a `BroadcastReceiver`-t dinamikusan fogjuk beregisztrálni, amit az `onStart` és `onStop` függvényekben kezelünk. A location elérése veszélyes engedély, ezért azt futásidőben is el kell kérnünk:
 
 ```kotlin
-    override fun onStart() {
-        super.onStart()
+override fun onStart() {
+    super.onStart()
 
-        registerReceiverWithPermissionCheck()
-    }
+    registerReceiverWithPermissionCheck()
+}
 
-    @NeedsPermission(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
-    fun registerReceiver() {
-        LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(locationReceiver, IntentFilter(LocationService.BR_NEW_LOCATION))
-    }
+@NeedsPermission(
+    Manifest.permission.ACCESS_COARSE_LOCATION,
+    Manifest.permission.ACCESS_FINE_LOCATION
+)
+fun registerReceiver() {
+    LocalBroadcastManager.getInstance(requireContext())
+        .registerReceiver(locationReceiver, IntentFilter(LocationService.BR_NEW_LOCATION))
+}
 
-    override fun onStop() {
-        LocalBroadcastManager.getInstance(requireContext())
-            .unregisterReceiver(locationReceiver)
+override fun onStop() {
+    LocalBroadcastManager.getInstance(requireContext())
+        .unregisterReceiver(locationReceiver)
 
-        super.onStop()
-    }
+    super.onStop()
+}
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<out String>,
+    grantResults: IntArray
+) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        onRequestPermissionsResult(requestCode, grantResults)
-    }
+    onRequestPermissionsResult(requestCode, grantResults)
+}
 ```
 
 E mellett lássuk el a `LocationDashboardFragmentet` a *@RuntimePermissions* annotációval, és vegyük föl a `build.gradle`-be a szükséges függőségeket. 
