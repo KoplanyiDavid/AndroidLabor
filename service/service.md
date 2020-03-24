@@ -24,7 +24,7 @@ A labor során, mivel már elérhető a Google Play Services a megfelelő emulá
 
 A labor során első lépésként egy egyszerű `Service`-t hozunk létre a szabad lemezterület lekérdezésére, majd egy helymeghatározásért felelős szolgáltatást készítünk, megjelenítjük a pozíció adatokat és egy értesítést, valamint "lebegő ablakot" is létrehozunk a szolgáltatáshoz.
 
-![](images/overview.png)
+<img src=".images/overview.png" width="400" align="middle">
 
 ## 1. Projekt előkészítése
 
@@ -205,7 +205,7 @@ Látható, hogy az `IntentService` milyen módon paraméterezhető, amennyiben �
 
 Próbáljuk ki az alkalmazást működés közben!
 
-![](images/freespace.png)
+<img src=".images/freespace.png" width="400" align="middle">
 
 Igazoljuk, hogy az `IntentService` valóban külön szálban, sorosítva hajtja végre a kéréseket! Ehhez ideiglenesen tegyünk egy `Thread.sleep(3000)` hívást az `onHandleIntent` függvénybe:
 
@@ -223,7 +223,7 @@ Indítsuk el így az alkalmazást és próbáljunk többször egymás után a me
 
 Az alábbi felhasználói felületet fogjuk elkészíteni egy `Fragment` segítségével.
 
-![](images/dashboardui01.png)
+<img src=".images/dashboardui01.png" width="400" align="middle">
 
 Töltsük le a [kék, lekerekített négyzetet jelképező 9-patch képet](images/tile_bg.9.png) és tegyük be a minősítő nélküli `drawable` könyvtárba.
 
@@ -497,7 +497,7 @@ R.id.action_settings -> {
 
 Próbáljuk ki a beállítások nézetet! Láthatjuk, hogy a beállítás értéke tényleg megmarad az alkalmazás újraindítása után is.
 
-![](images/settings.png)
+<img src=".images/settings.png" width="400" align="middle">
 
 ## 5. Helymeghatározás megvalósítása Service-szel
 
@@ -700,7 +700,7 @@ apply plugin: 'kotlin-kapt'
 
 Próbáljuk ki az alkalmazást! Emulátoron teszteléshez nyissuk meg az oldalsó vezérlősáv további lehetőségeit, ahol a *Location* menüben egyszerűen tudunk pozíciót küldeni az emulátornak.
 
-![](images/overview.png)
+<img src=".images/overview.png" width="400" align="middle">
 
 ## 7. Értesítés megjelenítése
 
@@ -781,7 +781,7 @@ override fun onLocationAvailability(locationAvailability: LocationAvailability) 
 
 Próbáljuk ki az alkalmazást működés közben és vizsgáljuk meg a *Notification* működését! Nézzük meg mi történik, ha rákattintunk az értesítésre!
 
-![](images/notification.png)
+<img src=".images/notification.png" width="400" align="middle">
 
 ## 8. Lebegő ablak megjelenítése
 
@@ -981,7 +981,7 @@ override fun onDestroy() {
 
 Próbáljuk ki az alkalmazást működés közben! Figyeljük meg, hogy az alkalmazás háttérbe helyezésekor is mindig látszik a lebegő ablak.
 
-![](images/floating.png)
+<img src=".images/floating.png" width="400" align="middle">
 
 ## 9. Geocoding és Bound Service kiegészítés
 
@@ -990,7 +990,7 @@ végigkövetni az alábbiakat.)
 
 Egészítsük ki a megoldást úgy, hogy a felületen elhelyezünk egy gombot az alábbi ábrának megfelelően, melyre kattintva az utolsó pozíció alapján (ha van), `Geocoder` segítségével kérdezzük le az aktuális címet.
 
-![](images/geocode.png)
+<img src=".images/geocode.png" width="400" align="middle">
 
 Első lépésként a `LocationService` osztályba vegyünk fel egy belső osztályt, mely reprezentálja a `Binder`-t:
 
