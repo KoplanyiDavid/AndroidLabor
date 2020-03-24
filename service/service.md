@@ -2,7 +2,7 @@
 
 ### Felkészülés a laborra
 
-A labor célja a [`Service`-ek](https://developer.android.com/guide/components/services) készítésének bemutatása Android környezetben, valamint a helymeghatározási lehetőségek ismertetése.
+A labor célja a [`Service`](https://developer.android.com/guide/components/services)-ek készítésének bemutatása Android környezetben, valamint a helymeghatározási lehetőségek ismertetése.
 
 ### Szolgáltatások bevezetés
 
@@ -24,7 +24,7 @@ A labor során, mivel már elérhető a Google Play Services a megfelelő emulá
 
 A labor során első lépésként egy egyszerű `Service`-t hozunk létre a szabad lemezterület lekérdezésére, majd egy helymeghatározásért felelős szolgáltatást készítünk, megjelenítjük a pozíció adatokat és egy értesítést, valamint "lebegő ablakot" is létrehozunk a szolgáltatáshoz.
 
-![](images/overview.png)
+<img src="images/overview.png" width="400" align="middle">
 
 ## 1. Projekt előkészítése
 
@@ -65,13 +65,14 @@ Az `AndroidManifest.xml`-be is vegyük fel előre az összes engedélyt, amire s
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <uses-permission android:name="android.permission.VIBRATE" />
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 ```
 
 Utolsó lépésként a projekt előkészítésében vegyük fel a következő függőségeket a modul szintű `build.gradle` fájlunkba:
 
 ```groovy
-implementation 'com.android.support:preference-v7:28.0.0'
-implementation 'com.google.android.gms:play-services-location:15.0.1', {
+implementation 'androidx.preference:preference-ktx:1.1.0'
+implementation 'com.google.android.gms:play-services-location:17.0.0', {
     exclude group: 'com.android.support'
 }
 ```
@@ -94,7 +95,7 @@ class FileSystemStatsIntentService : IntentService("FileSystemStatsIntentService
         const val KEY_MESSENGER = "KEY_MESSENGER"
     }
 
-    override fun onHandleIntent(intent: Intent) {
+    override fun onHandleIntent(intent: Intent?) {
         val freeSpace = calculateFreeSpace()
         sendResultFreeSpace(intent, freeSpace)
     }
@@ -105,8 +106,8 @@ class FileSystemStatsIntentService : IntentService("FileSystemStatsIntentService
         return available / 1024 / 1024
     }
 
-    private fun sendResultFreeSpace(intent: Intent, freeSpace: Long) {
-        val extras = intent.extras ?: return
+    private fun sendResultFreeSpace(intent: Intent?, freeSpace: Long) {
+        val extras = intent?.extras ?: return
         
         val messenger = extras.get(KEY_MESSENGER) as Messenger
 
@@ -157,7 +158,7 @@ Következő lépésként készítsünk egy menü erőforrást a `res/menu` mapp�
 </menu>
 ```
 
-Az `MainActivity`-ben hozzunk létre egy `Handler`-t, amely az `IntentService`-ből visszaérkező üzeneteket fogja kezelni, valamint állítsuk be az előbb definiált menüt és implementáljuk a *Free space* menüpont eseménykezelőjét. Figyeljük meg, hogy hogyan adjuk át a `Messenger` objektumot a `Service`-nek!
+A `MainActivity`-ben hozzunk létre egy `Handler`-t, amely az `IntentService`-ből visszaérkező üzeneteket fogja kezelni, valamint állítsuk be az előbb definiált menüt és implementáljuk a *Free space* menüpont eseménykezelőjét. Figyeljük meg, hogy hogyan adjuk át a `Messenger` objektumot a `Service`-nek!
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -202,11 +203,9 @@ class MainActivity : AppCompatActivity() {
 
 Látható, hogy az `IntentService` milyen módon paraméterezhető, amennyiben összetettebb feladatokat hajtunk végre a `Service`-ben (pl. hálózati kommunikáció, letöltés, stb.), hasonlóan adhatók át a kérések paraméterei, például egy URL vagy különböző azonosítók.
 
-Az `app` modul `build.gradle` fájljában állítsuk át a `targetSdkVersion` értékét 22-re, mivel 23-as API szinten és felette futásidőben kellene kezelnünk a veszélyes engedélyek elkérését. Ezt egy későbbi laboron nézzük majd meg.
-
 Próbáljuk ki az alkalmazást működés közben!
 
-![](images/freespace.png)
+<img src="images/freespace.png" width="400" align="middle">
 
 Igazoljuk, hogy az `IntentService` valóban külön szálban, sorosítva hajtja végre a kéréseket! Ehhez ideiglenesen tegyünk egy `Thread.sleep(3000)` hívást az `onHandleIntent` függvénybe:
 
@@ -224,7 +223,7 @@ Indítsuk el így az alkalmazást és próbáljunk többször egymás után a me
 
 Az alábbi felhasználói felületet fogjuk elkészíteni egy `Fragment` segítségével.
 
-![](images/dashboardui01.png)
+<img src="images/dashboardui01.png" width="400" align="middle">
 
 Töltsük le a [kék, lekerekített négyzetet jelképező 9-patch képet](images/tile_bg.9.png) és tegyük be a minősítő nélküli `drawable` könyvtárba.
 
@@ -270,7 +269,7 @@ Ezt követően készítsük el a `Fragment`-hez tartozó layout fájlt, mely az 
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -334,7 +333,7 @@ Ezt követően készítsük el a `Fragment`-hez tartozó layout fájlt, mely az 
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/fieldSpeed" />
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
 ```
@@ -498,7 +497,7 @@ R.id.action_settings -> {
 
 Próbáljuk ki a beállítások nézetet! Láthatjuk, hogy a beállítás értéke tényleg megmarad az alkalmazás újraindítása után is.
 
-![](images/settings.png)
+<img src="images/settings.png" width="400" align="middle">
 
 ## 5. Helymeghatározás megvalósítása Service-szel
 
@@ -650,36 +649,68 @@ private val locationReceiver = object : BroadcastReceiver() {
 }
 ```
 
-Ezt a `BroadcastReceiver`-t dinamikusan fogjuk beregisztrálni, amit az `onStart` és `onStop` függvényekben kezelünk:
+Ezt a `BroadcastReceiver`-t dinamikusan fogjuk beregisztrálni, amit az `onStart` és `onStop` függvényekben kezelünk. A location elérése veszélyes engedély, ezért azt futásidőben is el kell kérnünk:
 
 ```kotlin
 override fun onStart() {
     super.onStart()
 
+    registerReceiverWithPermissionCheck()
+}
+
+@NeedsPermission(
+    Manifest.permission.ACCESS_COARSE_LOCATION,
+    Manifest.permission.ACCESS_FINE_LOCATION
+)
+fun registerReceiver() {
     LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(locationReceiver, IntentFilter(LocationService.BR_NEW_LOCATION))
+        .registerReceiver(locationReceiver, IntentFilter(LocationService.BR_NEW_LOCATION))
 }
 
 override fun onStop() {
     LocalBroadcastManager.getInstance(requireContext())
-            .unregisterReceiver(locationReceiver)
+        .unregisterReceiver(locationReceiver)
 
     super.onStop()
 }
+
+override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<out String>,
+    grantResults: IntArray
+) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+    onRequestPermissionsResult(requestCode, grantResults)
+}
+```
+
+E mellett lássuk el a `LocationDashboardFragmentet` a *@RuntimePermissions* annotációval, és vegyük föl a `build.gradle`-be a szükséges függőségeket. 
+
+```groovy
+implementation "org.permissionsdispatcher:permissionsdispatcher:4.6.0"
+kapt "org.permissionsdispatcher:permissionsdispatcher-processor:4.6.0"
+```
+
+Engedélyezzük a Kotlin Annotataion Processing Toolt is:
+
+```groovy
+apply plugin: 'kotlin-kapt'
 ```
 
 Próbáljuk ki az alkalmazást! Emulátoron teszteléshez nyissuk meg az oldalsó vezérlősáv további lehetőségeit, ahol a *Location* menüben egyszerűen tudunk pozíciót küldeni az emulátornak.
 
-![](images/overview.png)
+<img src="images/overview.png" width="400" align="middle">
 
 ## 7. Értesítés megjelenítése
 
 Következő lépésként valósítsuk meg, hogy a `LocationService` *foreground* módban induljon el. Ehhez szükség van arra, hogy egy *Notification* is jelezze a futását - ebben meg fogjuk jeleníti az aktuális koordinátákat, valamint rákattintva elindítjuk a `MainActivity`-t.
 
-Vegyük fel az értesítés azonosító konstanst a *LocationService* osztály `companion object`-jébe:
+Vegyük fel az értesítés és a csatorna azonosító konstanst a *LocationService* osztály `companion object`-jébe:
 
 ```kotlin
 private const val NOTIFICATION_ID = 101
+const val CHANNEL_ID = "ForegroundServiceChannel"
 ```
 
 Készítsünk két új függvényt az osztályba a *Notification* létrehozására és megjelenítésére/frissítésére:
@@ -689,18 +720,20 @@ private fun createNotification(text: String): Notification {
     val notificationIntent = Intent(this, MainActivity::class.java)
     notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-    val contentIntent = PendingIntent.getActivity(this,
-            NOTIFICATION_ID,
-            notificationIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT)
+    createNotificationChannel()
 
-    return NotificationCompat.Builder(this)
-            .setContentTitle("Service Location Demo")
-            .setContentText(text)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setVibrate(longArrayOf(1000, 2000, 1000))
-            .setContentIntent(contentIntent)
-            .build()
+    val contentIntent = PendingIntent.getActivity(this,
+        NOTIFICATION_ID,
+        notificationIntent,
+        PendingIntent.FLAG_CANCEL_CURRENT)
+
+    return NotificationCompat.Builder(this, CHANNEL_ID)
+        .setContentTitle("Service Location Demo")
+        .setContentText(text)
+        .setSmallIcon(R.mipmap.ic_launcher)
+        .setVibrate(longArrayOf(1000, 2000, 1000))
+        .setContentIntent(contentIntent)
+        .build()
 }
 
 private fun updateNotification(text: String) {
@@ -708,13 +741,23 @@ private fun updateNotification(text: String) {
     val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.notify(NOTIFICATION_ID, notification)
 }
+
+private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val serviceChannel = NotificationChannel(
+            CHANNEL_ID,
+            "Foreground Service Channel",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val manager = getSystemService(
+            NotificationManager::class.java
+        )
+        manager.createNotificationChannel(serviceChannel)
+    }
+}
 ```
 
-A `NotificationCompat.Builder` egyparaméteres konstruktora elavult, és ezt jelzi is nekünk a fejlesztőkörnyezet,
-de ezzel most nincs teendőnk. Röviden ennek az az oka, hogy az Android 8.0 (API level 26) óta az értesítéseket
-csatornához kell rendelni, és a csatorna azonosítóját a kétparaméteres konstruktor második paramétereként
-adnánk meg.  Ez a témakör túlmutat a jelenlegi labor témáján, bővebben
-[itt](https://developer.android.com/training/notify-user/channels) lehet a témáról olvasni.
+Az Android 8.0 (API level 26) óta az értesítéseket csatornához kell rendelni, és a csatorna azonosítóját a `NotificationCompat.Builder` kétparaméteres konstruktorának második paramétereként adjuk meg. Jelen helyzetben csak összerakunk egy egyszerű csatornát az alapszintű használathoz. A csatornák bővebb ismertetése túlmutat a jelenlegi labor témáján, bővebben [itt](https://developer.android.com/training/notify-user/channels) lehet a témáról olvasni.
 
 A `LocationService`-t indító `onStartCommand` függvény legelején állítsuk be a *foreground* módot:
 
@@ -738,7 +781,7 @@ override fun onLocationAvailability(locationAvailability: LocationAvailability) 
 
 Próbáljuk ki az alkalmazást működés közben és vizsgáljuk meg a *Notification* működését! Nézzük meg mi történik, ha rákattintunk az értesítésre!
 
-![](images/notification.png)
+<img src="images/notification.png" width="400" align="middle">
 
 ## 8. Lebegő ablak megjelenítése
 
@@ -805,7 +848,7 @@ class FloatingWindowHelper(private val context: Context) {
         val params = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT)
 
@@ -938,7 +981,7 @@ override fun onDestroy() {
 
 Próbáljuk ki az alkalmazást működés közben! Figyeljük meg, hogy az alkalmazás háttérbe helyezésekor is mindig látszik a lebegő ablak.
 
-![](images/floating.png)
+<img src="images/floating.png" width="400" align="middle">
 
 ## 9. Geocoding és Bound Service kiegészítés
 
@@ -947,7 +990,7 @@ végigkövetni az alábbiakat.)
 
 Egészítsük ki a megoldást úgy, hogy a felületen elhelyezünk egy gombot az alábbi ábrának megfelelően, melyre kattintva az utolsó pozíció alapján (ha van), `Geocoder` segítségével kérdezzük le az aktuális címet.
 
-![](images/geocode.png)
+<img src="images/geocode.png" width="400" align="middle">
 
 Első lépésként a `LocationService` osztályba vegyünk fel egy belső osztályt, mely reprezentálja a `Binder`-t:
 
@@ -1028,8 +1071,7 @@ override fun onStart() {
     val intent = Intent(context, LocationService::class.java)
     context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
 
-    LocalBroadcastManager.getInstance(context)
-            .registerReceiver(locationReceiver, IntentFilter(LocationService.BR_NEW_LOCATION))
+    registerReceiverWithPermissionCheck()
 }
 
 override fun onStop() {
