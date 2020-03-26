@@ -2,346 +2,215 @@
 
 ## Felkészülés a laborra
 
-A labor célja a relációs adatbáziskezelés bemutatása Android platformon. A feladatok során a korábban elkészített Todo lista alkalmazást fejlesztjük tovább. 
+A labor célja a relációs adatbáziskezelés és az [Architecture Components](https://developer.android.com/jetpack#architecture-components) bemutatása Android platformon. A feladatok során a korábban elkészített Todo lista alkalmazást fejlesztjük tovább. 
 
-Az alkalmazás SQLite adatbázisban fogja tárolni a Todo elemeket, így azok nem fognak elveszni amikor a felhasználó elnavigál, vagy elforgatja a készüléket.
+Az alkalmazás SQLite adatbázisban fogja tárolni a Todo elemeket, így azok nem fognak elveszni amikor a felhasználó elnavigál, vagy elforgatja a készüléket. A laboron a Room könyvtárat fogjuk használni, mely egy absztrakciós réteget biztosít az SQLite adatbázisok kezeléséhez szükséges osztályok fölé, így leegyszerűsítve az adatbázis-kezelést.
 
 ## Kiinduló projekt
 
 Töltsük le a kiinduló projektet:
 
-[Kiinduló project](./assets/Todo_kiindulo.zip)
-
-Ez a Todo alkalmazás még csak memóriában tárolja a futása során létrehozott Todo elemeket.
+[Kiinduló project](./todo_kiindulo.zip)
 
 Tömörítsük ki a projektet tartalmazó mappát, indítsuk el az Android Studio-t, majd nyissuk meg a projektet.
+
+Ez a Todo alkalmazás még csak memóriában tárolja a futása során létrehozott Todo elemeket.
 
 Nézzük meg a `model` package-ben lévő `Todo` osztályt, amit a korábbi laboron már létrehoztunk. Ehhez hozzáadtunk egy `id` nevű property-t, ami az adatbázisban fogja egyedien azonosítani a példányokat. Ennek a property-nek adtunk egy [default értéket](https://kotlinlang.org/docs/reference/functions.html#default-arguments), hogy az explicit megadása nélkül is tudjunk `Todo` példányokat létrehozni.
 
 ## Adattárolás SQLite adatbázisban
 
-Célunk, hogy a a Todo objektumok memóriában tárolása helyett az alkalmazás egy SQLite adatbázisban perzisztensen mentse őket. Tehát az, hogy ne veszítsük el a felvett Todo-kat az alkalmazás bezárásakor. 
+Célunk, hogy a a Todo objektumok memóriában tárolása helyett az alkalmazás a Room segítségével egy SQLite adatbázisban perzisztensen mentse őket. Tehát az, hogy ne veszítsük el a felvett Todo-kat az alkalmazás bezárásakor. 
 
 A `SimpleItemRecyclerViewAdapter` a módosítások után nem a memóriában tárolt Todo listát fogja megjeleníteni, hanem majd az adatbázisból olvassa ki és köti össze azt a `RecyclerView`-val.
 
 A feladat megvalósítása három részből áll:
 
 1. Todo objektumok perzisztens tárolásának megvalósítása adatbázissal
-2. A memóriában tárolt listával dolgozó adapter átalakítása adatbázissal (`Cursor`-ral) működővé
-3. Workflow átírása
+2. Repository osztály elkészítése, mely az adatbázis elérésének implementációját elrejti a felsőbb rétegek elől
+3. ViewModel megvalósítása, ami háttérszálra teszi a blokkoló műveleteket és elválasztja a UI implementációját az adatrétegtől 
 
 ### Todo-k tárolása adatbázisban
 
-Az SQLite adatbáziskezelő használatához segítséget nyújt a platform, mégpedig az `SQLiteOpenHelper` osztállyal. Ebből származtatva olyan osztályt hozhatunk létre, ami referenciát szolgáltat az általunk használt teljes adatbázisra. Így több entitás osztály és adatbázis tábla esetén is elég egyetlen ilyen segédosztályt implementálni.
+Ahhoz, hogy az alkalmazásunkban használni tudjuk a Room könyvtárat, függőségként hozzá kell adnunk az app szintű `build.gradle` fájlhoz:
 
-Hozzunk létre a projektben a `hu.bme.aut.android.todo` package-en belül egy új package-et `database` néven. Ezen belül hozzunk létre egy új osztályt `DatabaseHelper` néven, ami az `SQLiteOpenHelper` osztályból származik. 
-
-A `DatabaseHelper` osztály:
-
-```kotlin
-class DatabaseHelper(
-        context: Context,
-        name: String,
-        factory: SQLiteDatabase.CursorFactory,
-        version: Int
-) : SQLiteOpenHelper(context, name, factory, version) {
-
-    override fun onCreate(db: SQLiteDatabase) {
-        // TODO
-    }
-
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // TODO
-    }
-
+```gradle
+dependencies {
+    ...
+    // Room
+    def room_version = '2.2.5'
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 }
 ```
+Ezután szinkronizáljuk a projektet.
 
-Az `SQLiteOpenHelper` osztályból történő származtatás az ősosztály konstruktorának meghívásán kívül két metódus kötelező felüldefiniálását írja elő. Az `onCreate()`-ben kell futtatni a séma létrehozó SQL szkriptet, míg az `onUpgrade()`-ben kezelhetők le az adatbázis verzióváltásával kapcsolatos feladatok. Legegyszerűbb esetben itt törölhető, majd újra létrehozható az egész séma. Ekkor viszont a felhasználó elveszíti a tárolt adatait, ami általában nem elfogadható felhasználói élmény.
+A Roomal 3 fő komponens csoport definiálható:
+- **Adatbázis**: A [`@Database`](https://developer.android.com/reference/androidx/room/Database) annotációval megjelölt abstract osztály, melyhez az implementációt a Room generálja majd. Az adatbázis általános beállításai itt adhatóak meg további annotációkkal. A `@Database` annotáció `entitites` paraméterében kell felsorolni azokat az `@Entity` annotációval ellátott osztályokat, amiket szeretnénk az adott adatbázisban kezelni.
+- **Entityk**: Egy osztályra az [`@Entity`](https://developer.android.com/training/data-storage/room/defining-data) annotációt rakva jelezhetjük, hogy az adott osztályt szeretnénk leképezni egy adatbázis táblára. 
+- **DAO**: A [`@DAO`](https://developer.android.com/training/data-storage/room/accessing-data) (Data Access Object) annotációval ellátott osztályok az adatok manipulálásáért felelnek. Azokat a metódusokat tartalmazzák, melyekkel az adatbázist elérjük és módosításokat végezhetünk.
 
-Az adatbáziskezelés során sok konstans jellegű változóval kell dolgoznunk, mint például a táblákban lévő oszlopok nevei, táblák neve, adatbázis fájl neve, séma létrehozó és törlő szkiptek, stb. Ezeket érdemes egy közös helyen tárolni, így szerkesztéskor vagy új entitás bevezetésekor nem kell a forrásfájlok között ugrálni, valamint egyszerűbb a teljes adatbázist létrehozó és törlő szkripteket generálni. Hozzunk létre egy új osztályt a `database` csomagban `DbConstants` néven, és konstans tagváltozóként vegyünk fel minden szükséges értéket:
+Az alkalmazás a Room által generált adatbázis osztályt használja fel arra, hogy elérje a  DAO osztályokat. Az alkalmazás ezután már eléri a DAO-kon keresztül az adatbázis táblákat, amin futtathatunk lekérdezéseket. Végül az alkalmazás az `Entity`-ken keresztül beállítja az adatbázisban található táblázatok oszlopoknak megfelelő értékeket.
+<p align=center>
+<img src="https://developer.android.com/images/training/data-storage/room_architecture.png">
+</p>
+
+Hozzunk létre a projektben a `hu.bme.aut.android.todo` package-en belül egy új package-et `database` néven. Ezen belül hozzuk létre a Todo-kat tároló Room entitást. Az entitásokat egyszerű Kotlin [data class](https://kotlinlang.org/docs/reference/data-classes.html)-okkal fogjuk létrehozni, a megfelelő annotációkkal ellátva.
 
 ```kotlin
-object DbConstants {
-
-    const val DATABASE_NAME = "data.db"
-    const val DATABASE_VERSION = 1
-    const val DATABASE_CREATE_ALL = Todo.DATABASE_CREATE
-    const val DATABASE_DROP_ALL = Todo.DATABASE_DROP
-
-    object Todo {
-        const val DATABASE_TABLE = "todo"
-        const val KEY_ROWID = "_id"
-        const val KEY_TITLE = "title"
-        const val KEY_PRIORITY = "priority"
-        const val KEY_DUEDATE = "dueDate"
-        const val KEY_DESCRIPTION = "description"
-
-        const val DATABASE_CREATE =
-                """create table if not exists $DATABASE_TABLE ( 
-			$KEY_ROWID integer primary key autoincrement, 
-			$KEY_TITLE text not null, 
-			$KEY_PRIORITY integer, 
-			$KEY_DUEDATE text, 
-			$KEY_DESCRIPTION text
-			); """
-
-        const val DATABASE_DROP = "drop table if exists $DATABASE_TABLE;"
-    }
-	
-}
+@Entity(tableName = "todo")
+data class RoomTodo(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val title: String,
+    val priority: Todo.Priority,
+    val dueDate: String,
+    val description: String
+)
 ```
 
-Figyeljük meg, hogy a `DbConstants` osztályon belül létrehoztunk egy belső `Todo` nevű osztályt, amiben a Todo entitásokat tároló táblához tartozó konstans értékeket tároljuk. Amennyiben az alkalmazásunk több entitást is adatbázisban tárol (gyakori eset!), akkor érdemes az egyes osztályokhoz tartozó konstansokat külön-külön belső osztályokban tárolni. Így sokkal átláthatóbb és karbantarthatóbb lesz a kód, mint ha ömlesztve felvennénk a `DbConstants`-ba az összes tábla összes konstansát. Ezek a belső osztályok praktikusan ugyanolyan névvel léteznek, mint az entitás osztályok (jelen esetben mindkettő neve Todo).
+Nézzük meg, hogy mit jelentenek az előbb használt annotációk:
+- `@Entity(tableName = "todo")`: Minden `@Entity` annotációval ellátott osztály egy SQLite táblát reprezentál. A `tableName` paraméterrel megadható a tábla neve. Ennek hiányában az osztály neve lesz a tábla neve. SQLite-ban a táblák nevei case-insensitive-ek. 
+- `@PrimaryKey`: Minden entitásnak kötelezően meg kell adni az elsődleges kulcsát. A Room támogatja az autogenerált elsődleges kulcsokat is a következőképp: `@PrimaryKey(autoGenerate = true)`. 
 
-Érdemes megfigyelni továbbá azt, hogy az osztályokat nem a `class` kulcsszóval deklaráltuk. Helyette az`object`-et használjuk, amivel a Kotlin nyelv azt biztosítja számunkra, hogy a `DbConstants` és a benne lévő `Todo` osztály is singletonként viselkednek, azaz az alkalmazás futtatásakor létrejön belőlük egy példány, további példányokat pedig nem lehet létrehozni belőlük.
+A Room nem fogja tudni, hogy hogyan tárolja és olvassa visszza a `Todo.Priority` enum értéket, ezért két [TypeConverter](https://developer.android.com/reference/kotlin/androidx/room/TypeConverter)-rel annotált függvénnyel definiálni kell a mentés és visszaolvasás formátumát és az átalakítások műveleteit. A Room fel fogja ismerni a `@TypeConverter` annotáció segítségével a függvény paraméter alapján, hogy mire kell konvertálni az enumot, illetve lekérdezéskor visszatérés alapján melyik enum értékre kell visszakonvertálni. Minden konverter metódusnak 1 bemenő paramétere és egy nem `null` visszatérési értéke van. 
+A `@TypeConverter`-t függvény párokra érdemes rakni, amik közül az egyik a domain reprezentációból az adatbázis reprezentációba konvertál, a másik pedig vice-versa.
 
-Itt arra, hogy ezek az osztály példányok léteznek igazából nincs szükségünk, csak azért hozunk létre osztályokat, hogy például a `KEY_ROWID` közvetlen leírása helyett (ha csak egy fájl szintű konstans lenne) a `DbConstants.Todo.KEY_ROWID` szintaxist használjuk.
-
-> Két fontos nyelvi elemet is használunk a konstansok létrehozásához: a string-ekbe paraméterek belefűzésére szolgáló [string template](https://kotlinlang.org/docs/reference/basic-types.html#string-templates)-eket a `$` segítségével, valamint a `"""` által határolt [raw string](https://kotlinlang.org/docs/reference/basic-types.html#string-literals)-eket, amelyek speciális tulajdonsága, hogy tartalmazhatnak új sorokat, illetve nem értelmezik a bennük lévő ` \ ` jeleket escape karakterként.
-
-Következő lépésként implementáljuk a `DatabaseHelper` osztály metódusait. A konstruktor paraméterei közül törölhetjük a `CursorFactory`-t és a verziószámot. Az ősosztály konstruktorának hívásakor a megfelelő helyen adjunk át `null`-t, így az osztály az alapértelmezett `CursorFactory`-t fogja használni. Verzióként adjuk át a `DbConstants.DATABASE_VERSION` konstans értékét. Az `onCreate` és `onUpgrade` metódusokban használjuk a `DbConstants`-ban ebből a célból létrehozott konstansokat.
-
-A módosított `DatabaseHelper` osztály:
+Ezeket a függvényeket nem ismeri fel csak úgy a Room generátora. A Room adatbázis osztályba `@TypeConverters` annotációval meg kell adni azokat az osztályokat, amikben ilyen függvények vannak. Lásd a dokumentációban: [https://developer.android.com/reference/kotlin/androidx/room/TypeConverters](https://developer.android.com/reference/kotlin/androidx/room/TypeConverters)
 
 ```kotlin
-class DatabaseHelper(
-        context: Context,
-        name: String
-) : SQLiteOpenHelper(context, name, null, DbConstants.DATABASE_VERSION) {
+class TodoTypeConverter {
 
-    override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(DbConstants.DATABASE_CREATE_ALL)
+    companion object {
+        const val LOW = "LOW"
+        const val MEDIUM = "MEDIUM"
+        const val HIGH = "HIGH"
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL(DbConstants.DATABASE_DROP_ALL)
-        db.execSQL(DbConstants.DATABASE_CREATE_ALL)
-    }
-
-}
-```
-
-Az adatbázis séma létrehozásához és megnyitásához szükséges osztályok így már rendelkezésre állnak. A következő feladatunk az entitás osztályok és az adatbázis közötti kapcsolat implementálása. Ehhez meg kell írnunk azokat a kódrészleteket, melyek egy memóriában lévő Todo objektumot képesek adatbázisba írni, onnan visszaolvasni, módosítani, valamint törölni. (Természetesen más, akár összetettebb funkciók is implementálhatók itt.) Ezt a kódot az entitás osztály helyett a karbantarthatóságot szem előtt tartva érdemes egy külön osztályban megvalósítani a `database` csomagon belül. 
-
-Legyen ez a `TodoDbLoader` osztály: 
-
-```kotlin
-class TodoDbLoader(private val context: Context) {
-
-    private lateinit var dbHelper: DatabaseHelper
-    private lateinit var db: SQLiteDatabase
-
-    @Throws(SQLException::class)
-    fun open() {
-        dbHelper = DatabaseHelper(context, DbConstants.DATABASE_NAME)
-        db = dbHelper.writableDatabase
-
-        dbHelper.onCreate(db)
-    }
-
-    fun close() {
-        dbHelper.close()
-    }
-
-    // CRUD és egyéb metódusok
-}
-```
-
-Az elérhető `SQLException`-ök közül használjuk az `android.database` package-ben lévőt.
-
-> A [`@Throws`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-throws/index.html) annotáció csak a [Java kóddal való interoperációt](https://kotlinlang.org/docs/reference/java-to-kotlin-interop.html#checked-exceptions) segíti, ha tisztán Kotlin alkalmazásunk van, igazából nem kell használnunk. Java-val ellentétben Kotlinban ugyanis nincsenek kötelezően lekezelendő, ún. [checked exception](https://kotlinlang.org/docs/reference/exceptions.html#checked-exceptions)-ök.
-
-A létrehozó, módosító és törlő metódusok a `TodoDbLoader`-en belül, a *CRUD és egyéb metódusok* komment után:
-
-```kotlin
-// INSERT
-fun createTodo(todo: Todo): Long {
-    val values = ContentValues()
-    values.put(DbConstants.Todo.KEY_TITLE, todo.title)
-    values.put(DbConstants.Todo.KEY_DUEDATE, todo.dueDate)
-    values.put(DbConstants.Todo.KEY_DESCRIPTION, todo.description)
-    values.put(DbConstants.Todo.KEY_PRIORITY, todo.priority.ordinal)
-
-    return db.insert(DbConstants.Todo.DATABASE_TABLE, null, values)
-}
-
-// DELETE
-fun deleteTodo(rowId: Long): Boolean {
-    val deletedTodos = db.delete(
-            DbConstants.Todo.DATABASE_TABLE,
-            "${DbConstants.Todo.KEY_ROWID} = $rowId",
-            null
-    )
-    return deletedTodos > 0
-}
-
-// UPDATE
-fun updateTodo(newTodo: Todo): Boolean {
-    val values = ContentValues()
-    values.put(DbConstants.Todo.KEY_TITLE, newTodo.title)
-    values.put(DbConstants.Todo.KEY_DUEDATE, newTodo.dueDate)
-    values.put(DbConstants.Todo.KEY_DESCRIPTION, newTodo.description)
-    values.put(DbConstants.Todo.KEY_PRIORITY, newTodo.priority.ordinal)
-
-    val todosUpdated = db.update(
-            DbConstants.Todo.DATABASE_TABLE,
-            values,
-            "${DbConstants.Todo.KEY_ROWID} = ${newTodo.id}",
-            null
-    )
-
-    return todosUpdated > 0
-}
-```
-
-Fussuk át és értelmezzük a bemásolt kódot!
-
-A kód bemásolása után importáljuk be a megfelelő osztályokat. `Todo` osztály az alkalmazásunkban két helyen is szerepel, egyrészt entitás osztályként a `model` csomagban, másrészt az adatbázis konstansokat tároló belső osztályként a `database` csomagban. A bemásolt kód célja, hogy a Todo entitásokat létrehozza, módosítsa vagy törölje az adatbázisban, így az entitás osztályt importáljuk be (`hu.bme.aut.android.todo.model.Todo`).
-
-Általában szükséges az egyetlen rekordot és a teljes rekord halmazra mutató `Cursor`-t visszaadó függvények implementálása is.
-
-Ezek implementációja a `TodoDbLoader` osztályban, a *CRUD műveletek* után:
-
-```kotlin
-// Get all Todos
-fun fetchAll(): Cursor {
-    // Cursor pointing to the result set of all Todos with all fields (where = null)
-    return db.query(
-            DbConstants.Todo.DATABASE_TABLE,
-            arrayOf(
-                    DbConstants.Todo.KEY_ROWID,
-                    DbConstants.Todo.KEY_TITLE,
-                    DbConstants.Todo.KEY_DESCRIPTION,
-                    DbConstants.Todo.KEY_DUEDATE,
-                    DbConstants.Todo.KEY_PRIORITY
-            ),
-            null,
-            null,
-            null,
-            null,
-            DbConstants.Todo.KEY_TITLE
-    )
-}
-
-// Querying for one of the Todos with the given id
-fun fetchTodo(id: Long): Todo? {
-    // Cursor pointing to a result set with 0 or 1 Todo
-    val cursor = db.query(
-            DbConstants.Todo.DATABASE_TABLE,
-            arrayOf(
-                    DbConstants.Todo.KEY_ROWID,
-                    DbConstants.Todo.KEY_TITLE,
-                    DbConstants.Todo.KEY_DESCRIPTION,
-                    DbConstants.Todo.KEY_DUEDATE,
-                    DbConstants.Todo.KEY_PRIORITY
-            ),
-            "${DbConstants.Todo.KEY_ROWID} = $id",
-            null,
-            null,
-            null,
-            DbConstants.Todo.KEY_TITLE
-    )
-
-    // Return with the found entry or null if there wasn't any with the given id
-    return if (cursor.moveToFirst()) {
-        getTodoByCursor(cursor)
-    } else {
-        null
-    }
-}
-
-companion object {
-    fun getTodoByCursor(c: Cursor): Todo {
-
-        val priority = when (c.getInt(c.getColumnIndex(DbConstants.Todo.KEY_PRIORITY))) {
-            0 -> Todo.Priority.LOW
-            1 -> Todo.Priority.MEDIUM
-            2 -> Todo.Priority.HIGH
+    @TypeConverter
+    fun toPriority(value: String?): Todo.Priority {
+        return when (value) {
+            LOW -> Todo.Priority.LOW
+            MEDIUM -> Todo.Priority.MEDIUM
+            HIGH -> Todo.Priority.HIGH
             else -> Todo.Priority.LOW
         }
+    }
 
+    @TypeConverter
+    fun toString(enumValue: Todo.Priority): String? {
+        return enumValue.name
+    }
+
+}
+```
+
+Következő lépésként hozzuk létre a Todo elemeink DAO osztályát.  Mi csak egy megfelelő annotációkkal ellátott interface-t definiálunk, az implementációt pedig a Room generálja majd nekünk. Az interface függvényein lévő annotációk magukért beszélnek - az `@Insert` beilleszt elemeket, a `@Delete` töröl, a `@Query`-be pedig paraméterként tetszőleges SQL kódot írhatunk, kódkiegészítésel!
+
+```kotlin
+@Dao
+interface TodoDao {
+
+    @Insert
+    fun insertTodo(todo: RoomTodo)
+
+    @Query("SELECT * FROM todo")
+    fun getAllTodos(): LiveData<List<RoomTodo>>
+
+    @Update
+    fun updateTodo(todo: RoomTodo): Int
+
+    @Delete
+    fun deleteTodo(todo: RoomTodo)
+
+}
+```
+Ha az adatok megváltoznak az adatbázisban, arra általában reagálni szeretnénk valahogy, például a frissített todo listánkat meg szeretnénk jeleníteni a felületen. Az összes Todo lekérdezésekor egy [LiveData](https://developer.android.com/topic/libraries/architecture/livedata) objektumot adunk át, mely egy [lifecycle könyvtár](https://developer.android.com/topic/libraries/architecture/lifecycle.html) elem. A `LiveData`-k segítségével feliratkozhatunk bizonyos adatok változásaira callback metódusokkal, így a `LiveData`-t figyelő (observer) metódusok reagálhatnak a változott adatra. `LiveData` visszatérési érték típus használa esetén a Room legenerálja az összes szükséges kódot ahhoz, hogy megfigyelhetőek legyenek az adatbázis változásai.
+A laborvezetővel nézzük át, hogy miket csinálnak a `TodoDao` függvényei és a hozzájuk tartozó annotációk.
+
+A generált DAO implementáció egy `RoomDatabase`-ből származó osztály segítségével érhető el. Az adatbázis általános beállításai itt adhatóak meg, szintén annotációkkal. Az entitásokat és típus konvertereket is ebben az osztályban kell felsorolni a megfelelő annotációkon belül. Hozzuk létre a `TodoDatabase`-t szintén a `database` package-ben. 
+
+```kotlin
+@Database(
+    version = 1,
+    exportSchema = false,
+    entities = [RoomTodo::class]
+)
+@TypeConverters(
+    TodoTypeConverter::class
+)
+abstract class TodoDatabase : RoomDatabase() {
+
+    abstract fun todoDao(): TodoDao
+
+}
+```
+
+## A Repository osztály elkészítése 
+
+Következő lépésként készítsük el a `Repository` osztályunkat. A `Respository` osztály elfedi előlünk az adatelérési réteget. Ha például adatokat szeretnénk kinyerni helyi adatbázisból (Room) és hálózatról is, akkor a felsőbb rétegek számára elrejtük az adatok elérési módját. Emellett ennek az osztálynak a feladata az is, hogy háttérszálra szervezze az adatmanipulációs hívásokat, hogy azok ne blokkolják a fő (UI) szálat.
+Ugyan a Room magával hozza a `LiveData` függőségeket (ezért is tudtuk importálni a `TodoDao` osztályba), ettől függetlenül érdemes külön függőségként is felvenni a `build.gradle (Module: app)` fájlban. A Room esetleges lecserélésekor így a `Repository` osztályban és az alkalmazás többi részében továbbra is elérhető marad a `LiveData`.
+
+```gradle
+dependencies {
+    ...
+    def lifecycle_version = "2.2.0"    
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+
+    // Coroutine	
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4'
+}
+```
+A `Repository` osztályunkban háttérszálra szeretnénk tenni a blokkoló adatbázis műveleteket, amihez a [kotlinx coroutine](https://github.com/Kotlin/kotlinx.coroutines) könyvtár elemeit szeretnénk használni, így ezt is felvettük a függőségek közé.
+Hozzuk létre a `hu.bme.aut.android.todo` package-en belül a `repository` package-et, melybe implementáljuk a `Repository` osztályunkat:
+
+
+```kotlin
+class Repository(private val todoDao: TodoDao) {
+
+    fun getAllTodos(): LiveData<List<Todo>> {
+        return todoDao.getAllTodos()
+            .map {roomTodos ->
+                roomTodos.map {roomTodo ->
+                    roomTodo.toDomainModel() }
+            }
+    }
+
+    suspend fun insert(todo: Todo) = withContext(Dispatchers.IO) {
+        todoDao.insertTodo(todo.toRoomModel())
+    }
+
+    private fun RoomTodo.toDomainModel(): Todo {
         return Todo(
-                id = c.getLong(c.getColumnIndex(DbConstants.Todo.KEY_ROWID)),
-                title = c.getString(c.getColumnIndex(DbConstants.Todo.KEY_TITLE)),
-                priority = priority,
-                dueDate = c.getString(c.getColumnIndex(DbConstants.Todo.KEY_DUEDATE)),
-                description = c.getString(c.getColumnIndex(DbConstants.Todo.KEY_DESCRIPTION))
+            id = id,
+            title = title,
+            priority = priority,
+            description = description,
+            dueDate = dueDate
+        )
+    }
+
+    private fun Todo.toRoomModel(): RoomTodo {
+        return RoomTodo(
+            title = title,
+            priority = priority,
+            description = description,
+            dueDate = dueDate
         )
     }
 }
 ```
 
-## Lista feltöltése adatbázisból
+A `LiveData` belül háttérszálon végzi az adatok lekérdezését, így azt nekünk már nem kell `coroutine scope`-ban elvégezni. A Kotlin `coroutine` egy nyelvi feature, mely segítségével könnyen írhatunk párhuzamosan futó programokat (aszinkron futó kódot). A `suspend` kulcsszóval mondhatjuk meg, hogy az adott függvény megakaszthatja a hívó szálat, valamilyen lassú művelet miatt (ilyenek tipikusan az adatbázis vagy hálózati műveletek). Az adatbázisba írás hosszantartó, UI-t blokkoló művelet lehet, a `withContext(Dispatchers.IO)` függvény az [`IO`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html) thread pool-on hajtja végre a paramétereként kapott lambda kifejezést.
 
-Ha a Todo-kat megjelenítő lista adapterét adatbázisból szeretnénk feltölteni, akkor a `RecyclerView.Adapter` helyett használhatunk egy külön erre a célra készült `CursorRecyclerViewAdapter` osztályt ősosztálynak, így leegyszerűsítve a feladatot. Ez az osztály a következő linken érhető el:
+A `getAllTodos` függvényben az első `map` az a [lifecycle map](https://developer.android.com/reference/android/arch/lifecycle/Transformations#map) függvénye, ami egy `LiveData<x>`-ből `LiveData<Y>`-t csinál. A második `map` pedig a lista elemek transzformálásához kell. Kicsit szerencsétlen, hogy a két függvénynek ugyanaz a neve, kódból ránézésre nem is látszik a különbség, csak ha belenézünk az implementációba. Esetünkben itt a `LiveData<List<RoomTodo>>`-t `LiveData<List<Todo>>`-ra transzformáljuk.
 
-[https://gist.github.com/skyfishjy/443b7448f59be978bc59#file-cursorrecyclerviewadapter-java](https://gist.github.com/skyfishjy/443b7448f59be978bc59#file-cursorrecyclerviewadapter-java)
-
-Hozzuk létre a `CursorRecyclerViewAdapter` nevű osztályt a `feature.list` package-ben és másoljuk be a kódját a fenti linkről.
-
-Figyeljük meg, hogy a másolt kód *Java* nyelven íródott. Ez természetesen nem jelent problémát, a Kotlin nyelv interoperabilitási támogatásával gond nélkül tudjuk majd használni ezt az osztályt a Kotlinban írt kódunkból.
-
-A megoldás hasonló az előző adapter kódjához, de itt az `onBindViewHolder` metódusban egy `Cursor`-t kapunk pozíció helyett, és ennek segítségével szerezhetjük meg a megjelenítendő adatokat. Ezen felül az osztály nem egy listában tárolja a `Todo` elemek referenciáit, hanem egy `Cursor`-t tart az elemek kiolvasásához.
-
-Hozzuk létre a `TodoAdapter` osztályt a `feature.list` csomagban:
-
-```kotlin
-class TodoAdapter(context: Context, cursor: Cursor) : CursorRecyclerViewAdapter<TodoAdapter.ViewHolder>(context, cursor) {
-
-    var itemClickListener: TodoItemClickListener? = null
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.row_todo, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, cursor: Cursor) {
-        val todo = TodoDbLoader.getTodoByCursor(cursor)
-
-        holder.todo = todo
-
-        holder.tvTitle.text = todo.title
-        holder.tvDueDate.text = todo.dueDate
-
-        val resource = when (todo.priority) {
-            Todo.Priority.LOW -> R.drawable.ic_low
-            Todo.Priority.MEDIUM -> R.drawable.ic_medium
-            Todo.Priority.HIGH -> R.drawable.ic_high
-        }
-        holder.ivPriority.setImageResource(resource)
-    }
-
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvDueDate: TextView = view.tvDueDate
-        val tvTitle: TextView = view.tvTitle
-        val ivPriority: ImageView = view.ivPriority
-
-        var todo: Todo? = null
-
-        init {
-            itemView.setOnClickListener {
-                todo?.let { itemClickListener?.onItemClick(it) }
-            }
-
-            itemView.setOnLongClickListener { clickedView ->
-                todo?.let { itemClickListener?.onItemLongClick(clickedView, it) }
-                true
-            }
-        }
-    }
-
-    interface TodoItemClickListener {
-        fun onItemClick(todo: Todo)
-        fun onItemLongClick(view: View, todo: Todo): Boolean
-    }
-
-}
-```
+A `Repository` osztályunkban található két [extension function](https://kotlinlang.org/docs/reference/extensions.html#extension-functions), melyek a Room Todo és az alkalmazásban használt Todo model közötti konverziókat végzik, így a `Repository`-t felhasználó osztályok elől elrejti az adatbázis implementációját, csak a `model` package osztályait ajánlja ki.
 
 ## Egyedi Application osztály készítése
 
-Készítsünk egy egyedi Application osztályt `TodoApplication` néven. Az `Application` az alkalmazás futása során folyamatosan jelen lévő objektum, melyet a futtatókörnyezet hoz létre automatikusan az alkalmazás indulásakor. Élettartama az alkalmazáshoz tartozó process élettartamához kötődik. A `TodoApplication` fogja fenntartani az adatbáziskapcsolatot reprezentáló TodoDbLoader objektumot, így azt nem kell minden `Activity`-ből külön-külön, erőforrás pazarló módon példányosítani.
+Készítsünk egy egyedi Application osztályt `TodoApplication` néven. Az `Application` az alkalmazás futása során folyamatosan jelen lévő objektum, melyet a futtatókörnyezet hoz létre automatikusan az alkalmazás indulásakor. Élettartama az alkalmazáshoz tartozó process élettartamához kötődik. A `TodoApplication` fogja fenntartani az adatbáziskapcsolatot reprezentáló `TodoDatabase` objektumot, így azt nem kell minden `Activity`-ből külön-külön, erőforrás pazarló módon példányosítani.
 
 A `hu.bme.aut.android.todo` package-en belül hozzuk létre a `TodoApplication` osztályt:
 
@@ -349,30 +218,24 @@ A `hu.bme.aut.android.todo` package-en belül hozzuk létre a `TodoApplication` 
 class TodoApplication : Application() {
 
 	companion object {
-		lateinit var todoDbLoader: TodoDbLoader
+		lateinit var todoDatabase: TodoDatabase
 	  		private set
 	}
 	
 	override fun onCreate() {
 		super.onCreate()
-	
-		todoDbLoader = TodoDbLoader(this)
-		todoDbLoader.open()
-	}
-	
-	override fun onTerminate() {
-		todoDbLoader.close()
-		super.onTerminate()
+
+		todoDatabase = Room.databaseBuilder(
+                    applicationContext,
+                    TodoDatabase::class.java,
+                    "todo_database"
+                ).build()
 	}
 	
 }
 ```
 
-Figyeljük meg, hogy a fejlesztőkörnyezet figyelmeztet egy lehetséges hibára!
-
-Ebben a példa alkalmazásban nem fog gondot okozni egy `Context` referencia "statikus" tárolása (mivel az `Application` által nyújtott `Context`-et tároljuk, aminek az élettartama megegyezik a statikus változó élettartamával), viszont érdemes tudni, hogy ez sokszor memóriaszivárgáshoz vezethet (például ha egy `Activity` `Context`-jét tárolnánk el így).
-
-> A `todoDbLoader` property-nél leírt [`private set`](https://kotlinlang.org/docs/reference/properties.html#getters-and-setters) segítségével azt érjük el, hogy a property settere privát lesz, de a gettere publikus marad (ha magára a property-re helyeznénk el a `private` kulcsszót, mindkettő priváttá válna). Ezzel elérjük, hogy az aktuális osztályon kívülről ne lehessen átállítani az értékét.
+> A `todoDatabase` propertynél leírt [`private set`](https://kotlinlang.org/docs/reference/properties.html#getters-and-setters) segítségével azt érjük el, hogy a property settere privát lesz, de a gettere publikus marad (ha magára a property-re helyeznénk el a `private` kulcsszót, mindkettő priváttá válna). Ezzel elérjük, hogy az aktuális osztályon kívülről ne lehessen átállítani az értékét.
 
 Az `AndroidManifest.xml`-ben állítsuk be, hogy a rendszer a `TodoApplication` osztályt példányosítsa az alkalmazás induláskor. Ehhez a manifestben lévő `<application>` tagben fel kell vennünk egy attribútumot `android:name` néven, aminek az értéke legyen a `TodoApplication` minősített (fully-qualified) osztályneve:
 
@@ -387,224 +250,189 @@ Az `AndroidManifest.xml`-ben állítsuk be, hogy a rendszer a `TodoApplication` 
         android:name=".TodoApplication">
 ```
 
-Bár az `android:name` attribútum értékének egy fully-qualified osztálynévnek kell lennie, a rendszer elfogadja a manifestben beállított `package` névhez relatív értéket is. Figyeljük meg, hogy az `android:name` beállításakor a fejlesztőkörnyezet *Ctrl+Space* lenyomására segíti az osztálynév megadását.
+Bár az `android:name` attribútum értékének egy fully-qualified osztálynévnek kell lennie, a rendszer elfogadja a manifestben beállított `package` névhez relatív értéket is. Figyeljük meg, hogy az `android:name` beállításakor a fejlesztőkörnyezet <kbd>Ctrl</kbd>+<kbd>Space</kbd> lenyomására segíti az osztálynév megadását.
 
-Ezt követően a `TodoApplication` osztály companion object-jének `todoDbLoader` propertyjével bármikor elérhetjük az SQLite adatbázis kapcsolatunkat, a `TodoApplication.todoDbLoader` szintaxissal.
+Ezt követően a `TodoApplication` osztály [companion object](https://kotlinlang.org/docs/tutorials/kotlin-for-py/objects-and-companion-objects.html#companion-objects)-jének `todoDatabase` propertyjével bármikor elérhetjük a Room adatbázis kapcsolatunkat, a `TodoApplication.todoDatabase` szintaxissal.
 
-## TodoListActivity módosítása
+## A ViewModel elkészítése
+
+A `ViewModel` szerepe az, hogy adatokat biztosítson a UI felé. Kommunikációs központként viselkedik a Repository és a UI között.
+
+<p align=center>
+<img src="https://miro.medium.com/max/1000/1*IS70nuH97qah8mAsZJ4WYA.png">
+</p>
+
+A `ViewModel` szintén a korábban említett [lifecycle library](https://developer.android.com/topic/libraries/architecture/lifecycle.html) része, ezért hozzá kell adni függőségként a `build.gradle (Module: app)`-hez:
+
+```gradle
+dependencies {
+...
+    // ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+}
+```
+
+A `ViewModel` segítségével biztosítjuk azt, hogy elkülönüljenek a UI adatai az `Activity` és a `Fragment` osztályok kódjaitól. Míg az utóbbiak a felület megjelenéséért felelnek, a `ViewModel` tárolja és dolgozza fel a UI-nak szükséges adatokat. A `ViewModel`-ben a korábban bemutatott `LiveData`-t fogjuk használni a képernyőn megjelenített gyakran változó adatokhoz, ami itt a todo lista lesz. Ennek előnye, hogy a `Livedata` elemekhez be lehet állítani observereket, melyek segítségével akkor kell csak frissíteni a felületet, ha a `LiveData` által tárolt adat változik. 
+Hozzuk létre a `viewmodel` package-t, melybe implementáljuk `TodoViewModel` osztályunkat:
+
+```kotlin
+class TodoViewModel : ViewModel() {
+
+    private val repository: Repository
+
+    val allTodos: LiveData<List<Todo>>
+
+    init {
+        val todoDao = TodoApplication.todoDatabase.todoDao()
+        repository = Repository(todoDao)
+        allTodos = repository.getAllTodos()
+    }
+
+    fun insert(todo: Todo) = viewModelScope.launch {
+        repository.insert(todo)
+    }
+}
+```
+
+A `TodoViewModel` az `insert` függvényében meghívja a `Repository.insert` függvényét, mely egy blokkoló `suspend` hívás. Ezt a hívást teszi háttérszálra a `ViewModel` a `launch` függvény segítségével, mely híváskor visszatér és háttérszálra teszi a paraméterként megkapott lambdát, egy `coroutine`-ba. A `ViewModel`-eknek saját [coroutine scope](https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope)-juk van a saját életciklus függvényhívásaik miatt, ezért itt ezt fel is használjuk.
+
+> A `coroutine`-okról bővebben a Kotlin alapú szoftverfejlesztés (VIAUAV41) tárgy [Coroutines](https://github.com/bmeaut/VIAUAV41/blob/master/material/10.md) fejezetében olvashatsz.
+
+
+## A TodoListActivity módosítása
 
 Az adatbázis alapú perzisztencia használatához minden rendelkezésre áll, már csak a `TodoListActivity`-ben kell áttérnünk az adatok adatbázisban tárolásra.
 
-Adjuk hozzá a `TodoListActivity`-hez az alábbi propertyket:
+Adjuk hozzá a `TodoListActivity`-hez a `TodoViewModel` referenciáját:
 
 ```kotlin
-private lateinit var adapter: TodoAdapter
-
-private lateinit var dbLoader: TodoDbLoader
-
-private var loadTodosTask: LoadTodosTask? = null
+    private lateinit var todoViewModel: TodoViewModel
 ```
 
-*Töröljük ki* a `TodoListActivity`-ből a régi adaptert, azaz az alábbi propertyt:
+Az `onCreate` függvény végén hozzuk létre a `ViewModel`-t a `ViewModelProvider` segítségével, majd iratkozzunk fel a `TodoViewModel` `allTodos` property változásaira:
 
 ```kotlin
-private lateinit var simpleItemRecyclerViewAdapter: SimpleItemRecyclerViewAdapter
-```
-
-Az adapter váltás miatt szükséges az, hogy a `TodoListActivity` ne a `SimpleItemRecyclerViewAdapter`-ben definiált `TodoItemClickListener`-t implementálja, hanem a `TodoAdapter`-ben definiáltat.
-
-A `TodoListActivity` új definíciója:
-
-```kotlin
-class TodoListActivity : AppCompatActivity(), TodoCreateFragment.TodoCreatedListener, TodoAdapter.TodoItemClickListener {
-```
-
-A `TodoListActivity`ben írjuk át az `onItemLongClick` függvényt is a `TodoAdapter.TodoItemClickListener` interfésznek megfelelően:
-
-```kotlin
-override fun onItemLongClick(view: View, todo: Todo): Boolean {
-	val popup = PopupMenu(this, view)
-	popup.inflate(R.menu.menu_todo)
-	popup.setOnMenuItemClickListener { item ->
-		when (item.itemId) {
-			R.id.delete -> {
-			  // TODO
-			}
-		}
-		false
-	}
-	popup.show()
-	return false
-}
-```
-
-Módosítsuk a `setupRecyclerView` metódust úgy, hogy az új adapterünket használja, és csak ennek a `RecyclerView`-val és a `TodoListActivity`-vel való összekötését végezze el:
-
-```kotlin
-private fun setupRecyclerView() {
-    adapter.itemClickListener = this
-    rvTodoList.adapter = adapter
-}
-```
-
-Ezek után már nincs szükség a korábban használt `SimpleItemRecyclerViewAdapter`-re, törölhetjük az osztályt tartalmazó fájlt a `feature.list` package-ből.
-
-Törölni kell még az `onTodoCreated` függvény törzséből az alábbi sort, mert a `TodoAdapter` interfésze különbözik az eddig használt adapterétől.
-
-```kotlin
-simpleItemRecyclerViewAdapter.addItem(todo)
-```
-
-Az diszk I/O műveleteket javasolt a háttérszálon, aszinkron módon futtatni. ellenkező esetben könnyen megakaszthatják a UI szálat esetlegesen lassú lefutásukkal.
-
-Készítsük el a `LoadTodosTask` osztályt a `database` csomagban, ami származzon az `AsyncTask` osztályból. Ez aszinkron módon kérdezi majd le az adatbázisunkból az összes elmentett `Todo` rekordot - az `AsyncTask` `doInBackground` függvénye háttérszálon fut, az ott előállított eredményt pedig az `onPostExecute` függvényben a fő szálon használhatjuk fel.
-
-A `LoadTodosTask` osztály kódja az alábbi lesz:
-
-```kotlin
-class LoadTodosTask(
-        private val listActivity: TodoListActivity,
-        private val dbLoader: TodoDbLoader)
-    : AsyncTask<Unit, Unit, Cursor>() {
-
-    companion object {
-        private const val TAG = "LoadTodosTask"
-    }
-
-    override fun doInBackground(vararg params: Unit): Cursor? {
-        return try {
-
-            val result = dbLoader.fetchAll()
-
-            if (!isCancelled) {
-                result
-            } else {
-                Log.d(TAG, "Cancelled, closing cursor")
-                result.close()
-                null
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "An error occurred while fetching Todos")
-            null
+        todoViewModel = ViewModelProvider(this).get(TodoViewModel::class.java)
+        todoViewModel.allTodos.observe(this) { todos ->
+            simpleItemRecyclerViewAdapter.addAll(todos)
         }
+```
+
+> A `TodoViewModel.allTodos` property-je `LiveData` típusú, mely a Todo listát kezeli. Minden változáskor lefut az `observe` függvénynek átadott lambda kifejezés, ahol frissítjük a `SimpleItemRecyclerViewAdapter` Todo listát.
+
+
+Töröljük ki a `setupRecyclerView` metódusból a `demoData` listát és az adapterhez való hozzáadását:
+
+```kotlin
+    private fun setupRecyclerView() {
+        simpleItemRecyclerViewAdapter = SimpleItemRecyclerViewAdapter()
+        simpleItemRecyclerViewAdapter.itemClickListener = this
+        rvTodoList.adapter = simpleItemRecyclerViewAdapter
     }
+```
 
-    override fun onPostExecute(result: Cursor?) {
-        Log.d(TAG, "Fetch completed, displaying cursor results")
-        listActivity.showTodos(result)
+Módosítsuk az `onTodoCreated` metódust úgy, hogy a `todoViewModel`-en keresztül beszúrjuk az adatbázisba az új Todo elemet:
+
+```kotlin
+    override fun onTodoCreated(todo: Todo) {
+        todoViewModel.insert(todo)
     }
-
-}
 ```
 
-> Egy újabb vezérlési struktúra expression-ként való viselkedését látjuk itt: a [`try-catch` blokk](https://kotlinlang.org/docs/reference/exceptions.html#try-is-an-expression) is rendelkezik visszatérési értékkel, amely sikeres futás esetén a `try`, exception esetén pedig a `catch` ág utolsó kifejezése.
+Próbáljuk ki az alkalmazást! 
+Adjunk hozzá néhány Todo elemet, majd forgassuk el a készüléket. Állítsuk le az alkalmazást és indítsuk újra. Az adatoknak meg kell maradniuk újraindítás után is.
 
-A `TodoListActivity`-ben hozzuk létre a `showTodos` függvényt:
+## A generált kód vizsgálása
+
+A build folyamat során a Room legenerálja az adatbázis kezelést segítő boilerplate kódot. A laborvezetővel nézzük át, hogy mennyi kód megírását spóroljuk meg a Room könyvtár használatával. A Room osztályok nevein <kbd>ctrl</kbd> + kattintás vagy <kbd>ctrl</kbd> + <kbd>B</kbd> kombinációkkal az Android Studio felsorolja az osztály előfordulásait. 
+Nézzük át a következőket:
+- `TodoDai_Impl.java`
+- `TodoDatabase_Impl.java`
+
+## Egy Todo elem törlése
+
+A következő feladat az, hogy hosszan nyomásra működjön a kiválasztott Todo elem törlése az adatbázisból. Ehhez első lépésként bővítsük az `SimpleItemRecyclerViewAdapter.TodoItemClickListener` interfész `onItemLongClick` metódusának paramétereit úgy, hogy egyszerű legyen Todo elemet átadni rajta keresztül a `ViewModel`-nek:
 
 ```kotlin
-fun showTodos(todos: Cursor?) {
-	if (todos != null) {
-		adapter = TodoAdapter(applicationContext, todos)
-		setupRecyclerView()
-	} else {
-		// Handle the case when there was an error while fetching todos
-		// Not part of this exercise
-	}
-	loadTodosTask = null
-}
+    interface TodoItemClickListener {
+        fun onItemClick(todo: Todo)
+        fun onItemLongClick(position: Int, view: View, todo: Todo): Boolean
+    }
 ```
 
-Ezt követően a `TodoListActivity` életciklus-függvényeit fogjuk módosítani.
-
-Az `onCreate()` függvényben kérjünk referenciát a `TodoApplication`-től a nyitott adatbázis kapcsolatot tartalmazó `TodoDbLoader`-re, illetve töröljük ki a függvényből a `setupRecyclerView()` hívást.
-
-Az `onCreate()` függvény a módosítások után:
+Az előbb módosított interfész metódust a `ViewHolder` `init` blokkjában hívjuk meg. Módosítsuk úgy, hogy harmadik paraméterként átadjuk a Todo modellünket is, a korábban megismert módon:
 
 ```kotlin
-override fun onCreate(savedInstanceState: Bundle?) {
-	super.onCreate(savedInstanceState)
-	setContentView(R.layout.activity_todo_list)
-
-	setSupportActionBar(toolbar)
-	toolbar.title = title
-
-	fab.setOnClickListener { view ->
-		Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-				.setAction("Action", null).show()
-	}
-
-	if (todo_detail_container != null) {
-		// The detail container view will be present only in the
-		// large-screen layouts (res/values-w900dp).
-		// If this view is present, then the
-		// activity should be in two-pane mode.
-		twoPane = true
-	}
-
-	dbLoader = TodoApplication.todoDbLoader
-}
+            itemView.setOnLongClickListener { view ->
+                todo?.let {todo -> itemClickListener?.onItemLongClick(adapterPosition, view, todo) }
+                true
+            }
 ```
 
-Írjuk meg az `onResume()` függvényt és indítsuk el benne a `Todo` lista tartalmának lekérdezését:
+A `TodoListActivity` valósítja meg a `TodoItemClickListener` interfészt, ezért itt is módosítanunk kell az `onItemLongClick` függvény fejlécét úgy, hogy harmadik paraméterként átveszi a Todo elemet. Az Android Studio felismeri, hogy megváltozott a megvalósítandó függvény fejléce, ezért a módosítást megtehetjük úgy, hogy a hibajelzésre visszük a kurzort és <kbd>alt</kbd> + <kbd>enter</kbd> billentyűkombináció megnyomása után kiválasztjuk az első javaslatot.
+
+<p align=center>
+<img src="./images/persistent_img1.png">
+</p>
+
+Most térjünk vissza a Room adatbázis osztályokra. Todo elemet az adatbázisból a `TodoDao`-ban lévő `@Delete` annotációval ellátott `deleteTodo` függvény segítségével fogunk tudni törölni. Ez a függvény egy `RoomTodo` típusú Room entityt vár paraméterül. Készítsünk egy olyan függvényt a `TodoDao`-n belül, amely egy Todo-t ad vissza azonosító alapján (amely azonosító egyben a `RoomTodo` elsődleges kulcsa is). A `@Query()` annotációba paraméterként tetszőleges SQL kifejezést írhatunk, ezt kihasználva ennek az implementálása a következő:
 
 ```kotlin
-override fun onResume() {
-	super.onResume()
-
-	refreshList()
-}
+    @Query("SELECT * FROM todo WHERE id == :id")
+    fun getTodoById(id: Long?): RoomTodo?
 ```
 
-Készítsük is el a hiányzó `refreshList()` metódust, amely elindítja az aszinkron adatbázis lekérdező folyamatot:
+Láthatjuk, hogy az SQL kifejezésben felhasználjuk a függvény paraméterereként megkapott azonosítót, a paraméter értékét kettősponttal oldjuk fel az SQL kifejezésben. A korábban bemutatott módon figyeljük meg, hogy a Room mit generál ebből a metódusból. A paraméterként kapott `id` és a visszatérési érték is nullable, ezért a generált kódba ezt az esetet külön lekezeli a Room. Kísérletezésképpen próbáljuk ki, hogy mit generál a Room, ha a paraméter vagy a visszatérés nem nullable. 
+
+Következő lépésben a `TodoRespository`  osztályt kell bővítenünk egy új metódussal, amely meghívja a `TodoDao` Todo elem törlés metódusát és paraméterként egy Todo modellt vár. A Dao `deleteTodo` metódusa viszont egy Room Todo példányt vár, azonban ehhez nem lesz jó a Repository `insert` metódusában használt `Todo.toRoomModel` extension function, mivel az nem adja át a Todo modell `id`-t, mert azt a Room generálja. Ennek megoldására a `Repository` osztály `delete` függvénye paraméterként átvesz egy Todo modellt, majd az `id` alapján a `TodoDao`-tól elkéri a törölni kívánt Room Todo példányt, amit a Dao `deleteTodo` függvénnyel töröl az adatbázisból:
 
 ```kotlin
-private fun refreshList() {
-	loadTodosTask?.cancel(false)
-
-	val loadTodosTask = LoadTodosTask(this, dbLoader)
-	loadTodosTask.execute()
-
-	this.loadTodosTask = loadTodosTask
-}
+    suspend fun delete(todo: Todo) = withContext(Dispatchers.IO) {
+        val roomTodo = todoDao.getTodoById(todo.id) ?: return@withContext
+        todoDao.deleteTodo(roomTodo)
+    }
 ```
 
-Írjuk meg az `onPause()` függvényt. Ha az alkalmazás háttérbe kerülésekor van folyamatban adatbázis lekérdezés, akkor megszakítjuk:
+> Érdemes megfigyelni az elvis `?:` operátor használatát arra az esetre, ha a Dao `getTodoById` függvénye `null`-t ad vissza valami miatt (például ha olyan `id`-t adunk meg, amely elsődleges kulcshoz nincs Todo az adatbázisban). Ekkor a `withContext` függvényhívásból a `return@withContext` szintaktikával térünk vissza. Ez az úgynevezett [Return at labels](https://kotlinlang.org/docs/reference/returns.html#return-at-labels) megoldás, mellyel egymásba ágyazott függvényhívások esetén meghatározhatjuk, hogy melyik függvényből történik a visszatérés.
+
+Az előbb megírt függvényünket a `TodoViewModel` fogja meghívni. Az `insert` függvény mintájára készítsük el a `ViewModel` osztály `delete` függvényét is:
 
 ```kotlin
-override fun onPause() {
-	super.onPause()
-
-	loadTodosTask?.cancel(false)
-}
+    fun delete(todo: Todo) = viewModelScope.launch {
+        repository.delete(todo)
+    }
 ```
 
-Írjuk meg az `onDestroy()` függvényt, amiben bezárjuk az adapterhez csatolt, Todo elemeket tartalmazó Cursor objektumot, ha létezik ilyen:
+Utolsó lépésként a `TodoListActivity`-ben kell lecserélni a törlés menüpont kiválasztását lekezelő kódsort az újonnan megírt `ViewModel` `delete` hívására. Cseréljük ki az `onItemLongClick` függvényben a `simpleItemRecyclerViewAdapter.deleteRow(position)` sort a `todoViewModel.delete(todo)` hívásra:
 
 ```kotlin
-override fun onDestroy() {
-	super.onDestroy()
-
-	adapter.cursor?.close()
-}
+    override fun onItemLongClick(position: Int, view: View, todo: Todo): Boolean {
+        val popup = PopupMenu(this, view)
+        popup.inflate(R.menu.menu_todo)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.delete -> {
+                    todoViewModel.delete(todo)
+                    return@setOnMenuItemClickListener true
+                }
+            }
+            false
+        }
+        popup.show()
+        return false
+    }
 ```
 
-Ha minden kódrészlet a megfelelő helyen van, akkor az alkalmazás indulásakor ugyanaz a felhasználói felület jelenik meg, mint a kiinduló projekt esetén. Azonban most még üres listát látunk, hiszen üres az adatbázis. Ahhoz, hogy újra működjön a Todo létrehozás funkció, módosítanunk kell az `onTodoCreated` függvényt:
+A `TodoViewModel.delete` hívás után érdemes `true`-val visszatérni a callbackből, ha esetleg a `menu_todo` menüt bővíteni szeretnénk, a többi feliratkozó függvény már ne fusson le.
 
-```kotlin
-override fun onTodoCreated(todo: Todo) {
-	dbLoader.createTodo(todo)
-	refreshList()
-}
-```
-
-A `dbLoader.createTodo(todo)` hívást természetesen az adatbázisból betöltés mintájára javasolt háttérszálon futtatni, ezt most a példa alkalmazásban az egyszerűsítés kedvéért nem tesszük meg.
-
-Indítsuk el az alkalmazást! Próbáljuk ki, hogy forgatás, illetve az alkalmazás háttérbe küldése és visszahozása után is megmaradnak a létrehozott Todo-k.
+Futtassuk az alkalmazást és próbáljuk ki a Todo elem törlését. Nézzük meg a `TodoDao` új generált metódusát is.
 
 ## Önálló feladat
 
 Az eredeti funkcionalitás további részeinek megvalósítása önálló feladatként oldandó meg:
 
--  Az új Todo beszúrását is végezzük egy `AsyncTask`-ban, háttérszálon!
--  Hosszan nyomásra működjön a kiválasztott Todo elem törlése
 -  Az összes Todo elem törlésére is legyen lehetőség (pl. Options menüből elérve)
+-  **opcionális**: Hosszan nyomás esetén egy bővített menüben legyen lehetőség a kiválasztott Todo elem módosítására
+
+> *Tipp:* A DAO-ban a  `@Query()` annotációval tetszőleges SQL kifejezést tudunk írni 😉
+
