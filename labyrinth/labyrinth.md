@@ -308,12 +308,12 @@ class LabyrinthAPI {
         private const val UTF_8 = "UTF-8"
     }
     
-    fun moveUser(userName: String, direction: Int): String {
+    fun moveUser(username: String, direction: Int): String {
         //TODO
         return ""
     }
 
-    fun writeMessage(userName: String, message: String): String {
+    fun writeMessage(username: String, message: String): String {
         //TODO
         return ""
     }
