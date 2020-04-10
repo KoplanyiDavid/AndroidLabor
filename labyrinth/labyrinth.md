@@ -378,7 +378,7 @@ A `moveUser` és a `writeMessage` függvényekben első lépésként összerakju
 ```kotlin
 fun moveUser(username: String, direction: Int): String {
     return try {
-        val moveUserUrl = "$BASE_URL/step/${userName.encode()}/$direction"
+        val moveUserUrl = "$BASE_URL/step/${username.encode()}/$direction"
 
         Log.d(TAG, "Call to $moveUserUrl")
         httpGet(moveUserUrl)
@@ -391,7 +391,7 @@ fun moveUser(username: String, direction: Int): String {
 
 fun writeMessage(username: String, message: String): String {
     return try {
-        val writeMessageUrl = "$BASE_URL/message/${userName.encode()}/${message.encode()}"
+        val writeMessageUrl = "$BASE_URL/message/${username.encode()}/${message.encode()}"
 
         Log.d(TAG, "Call to $writeMessageUrl")
         httpGet(writeMessageUrl)
