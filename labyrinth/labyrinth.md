@@ -673,14 +673,24 @@ val duration = measureTimeMillis {
 
 ### Feladat 2 - Hálozat elérhető-e
 
-Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban. Egy példa a hálózat ellenőrzésére, hogy pinggel végrehajtunk egy hálózati hívást: 
+Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban.
 
 ```kotlin
-val isNetworkAvailable = Runtime.getRuntime().exec("ping -c 1 google.com").waitFor() == 0
-``` 
+val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+val activeNetworkInfo = connectivityManager.activeNetworkInfo
+val isNetworkAvailable = activeNetworkInfo != null && activeNetworkInfo.isConnected
+```
+
 
 A szükséges manifest engedély: 
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 ```
+
+
+> **Megjegyzés:** A fenti példa API 29 óta deprecated lett, valós környezetben pinggel végrehajtunk egy hálózati hívást és annak a válaszát vizsgáljuk, ha az internet elérhetőségre vagyunk kíváncsiak, azonban ez a megoldás csak valós eszközökön működik, emulátoron mindig `false`-al tér vissza: 
+
+```kotlin
+val isNetworkAvailable = Runtime.getRuntime().exec("ping -c 1 google.com").waitFor() == 0
+``` 
