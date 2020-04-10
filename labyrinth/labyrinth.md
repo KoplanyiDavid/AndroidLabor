@@ -673,12 +673,10 @@ val duration = measureTimeMillis {
 
 ### Feladat 2 - Hálozat elérhető-e
 
-Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban. Segítség: 
+Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban. Egy példa a hálózat ellenőrzésére, hogy pinggel végrehajtunk egy hálózati hívást: 
 
 ```kotlin
-val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-val activeNetworkInfo = connectivityManager.activeNetworkInfo
-val isNetworkAvailable = activeNetworkInfo != null && activeNetworkInfo.isConnected
+val isNetworkAvailable = Runtime.getRuntime().exec("ping -c 1 google.com").waitFor() == 0
 ``` 
 
 A szükséges manifest engedély: 
