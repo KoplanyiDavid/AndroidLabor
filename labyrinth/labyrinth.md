@@ -28,12 +28,14 @@ Hozzunk létre egy új Android Studio projektet. Válasszuk a *Phone and Tablet*
 
 Az alkalmazás neve legyen `Labyrinth`, a package név legyen `hu.bme.aut.android.labyrinth`, és természetesen válasszuk a Kotlin nyelvet.
 
-A minimum SDK szint az *API 19: Android 4.4*, az Instant alkalmazásokat nem támogatjuk, de az AndroidX függőségeket hagyjuk bejelölve.
+A minimum SDK szint az *API 21: Android 5.0*. (Régebbi Android Studio: az Instant alkalmazásokat nem támogatjuk, de az AndroidX függőségeket hagyjuk bejelölve)
 
-Első lépésként készítsük el az alkalmazás felhasználói felületét XML erőforrásból. A felületen helyezzünk el két `EditText`-et, egyet a felhasználónév, egyet pedig az üzenet bekéréséhez. Emellett legyen összesen öt gomb: négy gomb az irányításhoz, egy az üzenet elküldéséhez, valamint három `TextView` az üzenetek megjelenítéséhez. 
+Első lépésként készítsük el az alkalmazás felhasználói felületét XML erőforrásból. A `MainActivity` felülete legyen a következő:
+a képernyőn  helyezzünk el két `EditText`-et, egyet a felhasználónév, egyet pedig az üzenet bekéréséhez. Emellett legyen összesen öt gomb: négy gomb az irányításhoz, egy az üzenet elküldéséhez, valamint három `TextView` az üzenetek megjelenítéséhez. 
 
-<img src="./images/stage0.png" width="250" align="middle">
-
+<p align="center">
+<img src="./images/stage0.png" width="250">
+</p>
 Az ehhez megfelelő XML állomány a következő:
 
 ```xml  
@@ -296,7 +298,7 @@ A mostani laboron a *Java Thread* és az *Eseménybusz* kombinációját fogjuk 
 
 Következő feladatunk a szerver oldali kommunikációt biztosító osztály megvalósítása, mely végrehajtja a HTTP GET hívásokat és a választ visszaadja `String` formájában.
 
-A `network` csomagban hozzuk létre a `LabyrinthAPI` osztályt.
+A hálózati kommunikációért felelős osztályoknak készítsünk egy `network` package-t, melybe hozzuk létre a `LabyrinthAPI` osztályt.
 
 ```kotlin
 class LabyrinthAPI {
@@ -329,7 +331,7 @@ A fentiek miatt a beépített megoldások helyett egy széleskörben elterjedt, 
 
 Ennek használatához fel kell vennünk a következő sort az alkalmazás modul szintű `build.gradle` fájljának `dependencies` részéhez:
 
-```kotlin
+```grgadle
 implementation 'com.squareup.okhttp3:okhttp:4.4.0'
 ```
 
@@ -354,13 +356,13 @@ private fun httpGet(url: String): String {
 
 Ezt fogjuk használni az összes HTTP GET híváshoz. 
 
-A HTTP karakterek megfelelő URL encode-olásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt:
+A HTTP karakterek megfelelő URL encode-olásához az `URLEncoder.encode(...)` függvényét használjuk, UTF-8 karakterkódolással. Azért, hogy ezt ne kelljen feleslegesen többször leírni, használjunk egy segédfüggvényt. Ehhez készítsünk a `String` osztályon egy [`extension function`](https://kotlinlang.org/docs/reference/extensions.html#extension-functions)-t, ami az adott stringen meghívva visszaadja az UTF-8-ban encodeolt változatát:
 
 ```kotlin
-private fun encode(url: String) = URLEncoder.encode(url, UTF_8)
+private fun String.encode() = URLEncoder.encode(this, UTF_8)
 ```
 
-Használjuk is az újonnan elkészített függvényünket, és implementáljuk a `moveUser` és `writeMessage` hívásokat.
+Használjuk is az újonnan elkészített függvényünket, és implementáljuk a `moveUser` és `writeMessage` hívásokat. Bővítsük ki az osztályt a `TAG` és a `RESPONSE_ERROR` konstansokkal:
 
 ```kotlin
 companion object {
@@ -369,10 +371,14 @@ companion object {
     private const val TAG = "Network"
     private const val RESPONSE_ERROR = "ERROR"
 }
+```
 
+A `moveUser` és a `writeMessage` függvényekben első lépésként összerakjuk a szerver végpontjának `url`-jét, amit meghívunk az `OkHttpClient` kliensünkkel. A hívás előtt kiírjuk az [Android Log](https://developer.android.com/reference/android/util/Log) segítségével a Logcatre az eseményt. Mindkét függvényben visszatérünk egy Stringgel, ha sikeres volt a hívás, a GET kérés `body`-ját, hiba esetén pedig a `RESPONSE_ERROR` konstans értékét adjuk vissza.
+
+```kotlin
 fun moveUser(username: String, direction: Int): String {
     return try {
-        val moveUserUrl = "$BASE_URL/step/${encode(username)}/$direction"
+        val moveUserUrl = "$BASE_URL/step/${userName.encode()}/$direction"
 
         Log.d(TAG, "Call to $moveUserUrl")
         httpGet(moveUserUrl)
@@ -385,7 +391,7 @@ fun moveUser(username: String, direction: Int): String {
 
 fun writeMessage(username: String, message: String): String {
     return try {
-        val writeMessageUrl = "$BASE_URL/message/${encode(username)}/${encode(message)}"
+        val writeMessageUrl = "$BASE_URL/message/${userName.encode()}/${message.encode()}"
 
         Log.d(TAG, "Call to $writeMessageUrl")
         httpGet(writeMessageUrl)
@@ -395,8 +401,7 @@ fun writeMessage(username: String, message: String): String {
     }
 }
 ```
-
-Ezután vegyük fel az irányok értékeit konstansként a `MainActivity`-be:
+Következő lépésként használni fogjuk az előbb megírt függvényeket a felhasználói felületen, először vegyük fel az irányok értékeit konstansként a `MainActivity`-be:
 
 ```kotlin
 companion object {
@@ -407,7 +412,7 @@ companion object {
 }
 ```
 
-Majd privát propertyként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
+Majd privát propertyként adjunk hozzá egy példányt az előbb létrehozott `LabyrinthAPI` osztályból, amit az `onCreate()` függvényben példányosítunk és használjuk a megfelelő események bekövetkeztekor, ezeket kössűk a megfelelő gombokhoz!
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -419,11 +424,13 @@ class MainActivity : AppCompatActivity() {
         private const val MOVE_DOWN = 4
     }
 
-    private val labyrinthAPI = LabyrinthAPI()
+    private lateinit var labyrinthAPI: LabyrinthAPI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        
+        labyrinthAPI = LabyrinthAPI()
 
         btnDown.setOnClickListener {
             val response = labyrinthAPI.moveUser(etUsername.text.toString(), MOVE_DOWN)
@@ -646,15 +653,7 @@ Végül próbáljuk ki az alkalmazást működés közben:
 
 ## Önálló feladatok
 
-### Feladat 1 - Extension function
-
-Cseréljük le a `LabyrinthAPI`-ban definált `encode` függvényt egy [extension function](https://kotlinlang.org/docs/reference/extensions.html#extension-functions)-re, amelyet az eddigi helyett az alábbi szintaxissal használhatunk:
-
-```kotlin
-username.encode()
-```
-
-### Feladat 2 - Válaszidő kijelzése
+### Feladat 1 - Válaszidő kijelzése
 
 Egészítsük ki az alkalmazást úgy, hogy a felhasználói felületen megjelenítsük a szerverrel való kommunikáció során tapasztalt válaszidőt (üzenet küldése és válasz megérkezése közti idő).
 
@@ -672,7 +671,7 @@ val duration = measureTimeMillis {
 }
 ```
 
-### Feladat 3 - Hálozat elérhető-e
+### Feladat 2 - Hálozat elérhető-e
 
 Egészítsük ki az alkalmazást úgy, hogy a hálózati hívások előtt ellenőrizzük, hogy elérhető-e a hálózat, és ha nem, akkor jelenítsünk meg hibaüzenetet pl. `Toast`-ban. Segítség: 
 
