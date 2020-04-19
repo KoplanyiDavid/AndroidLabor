@@ -662,7 +662,7 @@ A labor során a 22-es `targetSdkVersion` beállításával több, az újabb And
 
 A teljesség kedvéért a most kihagyott részek az alábbiak voltak:
 - Android Nougat (24) óta nem hivatkozhatunk külső fájlokat URI szerint [FileProvider](https://developer.android.com/training/secure-file-sharing/setup-sharing) nélkül.
-- Android Marshmallow (23) felett a veszélyes engedélyeket futásidőben kell elkérnünk, erre később fogunk példát látni. 
+- Android Marshmallow (23) felett a veszélyes engedélyeket futásidőben kell elkérnünk, erre az [5.laboron](https://github.com/VIAUAV21/Labor/blob/master/permissions/permissions.md) láttunk példát a  [PermissionsDispatcher](https://github.com/permissions-dispatcher/PermissionsDispatcher) könyvtár használatával. 
 
 ## Önálló feladatok
 
