@@ -90,7 +90,7 @@ Vegyük fel a Manifest állományba a szükséges engedélyeket:
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 ```
 
-> Ezen engedélyek közül a kamera kezelés és a külső háttértár elérése veszélyes engedély, amit Android 6.0 felett futásidőben kell elkérni. A félév során lesz ennek a menetéről is szó. Ezen a laboron azonban ezt még nem szeretnénk támogatni, ezért a modul szintű `build.gradle`-ben a `targetSdkVersion` értékét vegyük le `22`-re.
+> Ezen engedélyek közül a kamera kezelés és a külső háttértár elérése veszélyes engedély, amit Android 6.0 felett futásidőben kell elkérni. A félév során az 5. laboron láthattatok a futásidejű engedélykezelésre példát. Ezen a laboron azonban időhiány miatt ezt nem szeretnénk támogatni, ezért a modul szintű `build.gradle`-ben a `targetSdkVersion` értékét vegyük le `22`-re. Ne felejtsük el, hogy a teszteléshez régebbi verzióval kell létrehoznunk emulátort.
 
 A modul szintű `build.gradle`-ben vegyük fel a `RecyclerView` függőséget:
 
