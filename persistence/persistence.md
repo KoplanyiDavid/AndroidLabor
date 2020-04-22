@@ -45,6 +45,12 @@ dependencies {
 ```
 Ezután szinkronizáljuk a projektet.
 
+Ahhoz, hogy a kapt kulcsszó is működjön és a gradle felismerje, engedélyeznünk kell a Kotlin Annotation Processing Toolt. Ezt szintén a modul szintű build.gradle fájlban tudjuk bekapcsolni. Ezt a kiinduló projektben **már megtettük**, a fájl tetejére illesztve a következőt:
+
+```gradle
+apply plugin: 'kotlin-kapt'
+```
+
 A Roomal 3 fő komponens csoport definiálható:
 - **Adatbázis**: A [`@Database`](https://developer.android.com/reference/androidx/room/Database) annotációval megjelölt abstract osztály, melyhez az implementációt a Room generálja majd. Az adatbázis általános beállításai itt adhatóak meg további annotációkkal. A `@Database` annotáció `entitites` paraméterében kell felsorolni azokat az `@Entity` annotációval ellátott osztályokat, amiket szeretnénk az adott adatbázisban kezelni.
 - **Entityk**: Egy osztályra az [`@Entity`](https://developer.android.com/training/data-storage/room/defining-data) annotációt rakva jelezhetjük, hogy az adott osztályt szeretnénk leképezni egy adatbázis táblára. 
