@@ -28,7 +28,7 @@
 
 [11. labor - Játékfejlesztés](./spaceshipgame/spaceshipgame.md)
 
-[12. labor - Architektúra](./architecture/architecture.md)
+[12. labor - Navigáció és értesítések](navigation/navigation.md)
 
 [13. labor - Launcher++](./launcherpp/launcherpp.md)
 
